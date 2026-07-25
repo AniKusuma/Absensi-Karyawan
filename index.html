@@ -5,10 +5,7 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
-<title>
-Absensi Karyawan
-</title>
-
+<title>Absensi Karyawan</title>
 
 <style>
 
@@ -19,11 +16,9 @@ text-align:center;
 padding:20px;
 }
 
-
 h2{
 color:#1a73e8;
 }
-
 
 input,button{
 
@@ -34,7 +29,6 @@ font-size:16px;
 border-radius:8px;
 
 }
-
 
 input{
 border:1px solid #ccc;
@@ -53,11 +47,9 @@ color:white;
 background:#ff9800;
 }
 
-
 #masukBtn{
 background:#1a73e8;
 }
-
 
 #pulangBtn{
 background:#e53935;
@@ -101,7 +93,7 @@ placeholder="Masukkan Nama">
 <br>
 
 
-<video 
+<video
 id="kamera"
 autoplay
 playsinline
@@ -112,7 +104,7 @@ muted>
 <br>
 
 
-<button 
+<button
 id="kameraBtn"
 onclick="bukaKamera()">
 
@@ -124,19 +116,19 @@ onclick="bukaKamera()">
 <br>
 
 
-<img 
+<img
 id="preview"
 style="display:none;">
 
 
-<canvas 
+<canvas
 id="canvas"
 style="display:none;">
 </canvas>
 
 
 
-<button 
+<button
 id="masukBtn"
 onclick="absenMasuk()">
 
@@ -145,7 +137,7 @@ onclick="absenMasuk()">
 </button>
 
 
-<button 
+<button
 id="pulangBtn"
 onclick="absenPulang()">
 
@@ -155,18 +147,20 @@ onclick="absenPulang()">
 
 
 
-<p id="hasil"></p>
-
 <p id="lokasi"></p>
+
+<p id="hasil"></p>
 
 
 
 <script>
 
 
+// GANTI URL INI
+
 const URL_APPS_SCRIPT =
 
-"https://script.google.com/macros/s/AKfycbwHh4nxokmx_hSyLPMJg9GQYjDXuDFUA5Z6GfGN-vSglje5f2mgeBGEqQFyOsk4O_zv/exec";
+"https://script.google.com/macros/s/URL_ANDA/exec";
 
 
 
@@ -174,18 +168,16 @@ let latitude="";
 
 let longitude="";
 
-let stream=null;
-
-
-
-let video=document.getElementById("kamera");
+let video =
+document.getElementById("kamera");
 
 
 
 
-// =====================
-// BUKA KAMERA
-// =====================
+
+// ======================
+// AKTIFKAN KAMERA
+// ======================
 
 
 function bukaKamera(){
@@ -202,13 +194,10 @@ audio:false
 })
 
 
-.then(function(s){
+.then(function(stream){
 
 
-stream=s;
-
-
-video.srcObject=s;
+video.srcObject=stream;
 
 
 video.play();
@@ -221,14 +210,14 @@ document.getElementById("hasil").innerHTML=
 })
 
 
-.catch(function(err){
+.catch(function(error){
 
 
 alert(
 "Kamera gagal:\n"+
-err.name+
+error.name+
 "\n"+
-err.message
+error.message
 );
 
 
@@ -241,45 +230,50 @@ err.message
 
 
 
-// =====================
-// AMBIL FOTO
-// =====================
+
+
+// ======================
+// AMBIL FOTO + WATERMARK
+// ======================
 
 
 function ambilFoto(){
 
 
-
-let canvas=
+let canvas =
 document.getElementById("canvas");
 
 
-canvas.width=
+canvas.width =
 video.videoWidth;
 
 
-canvas.height=
+canvas.height =
 video.videoHeight;
 
 
 
-let ctx=
+let ctx =
 canvas.getContext("2d");
 
 
 
 ctx.drawImage(
+
 video,
+
 0,
+
 0
+
 );
 
 
 
-// WATERMARK
 
+// watermark
 
-ctx.fillStyle=
+ctx.fillStyle =
 "rgba(0,0,0,0.6)";
 
 
@@ -303,11 +297,13 @@ ctx.font="22px Arial";
 
 
 
-let nama=
+let nama =
 document.getElementById("nama").value;
 
 
-let waktu=new Date();
+
+let waktu =
+new Date();
 
 
 
@@ -362,8 +358,11 @@ canvas.height-10
 
 
 return canvas.toDataURL(
+
 "image/jpeg",
+
 0.9
+
 );
 
 
@@ -376,15 +375,15 @@ return canvas.toDataURL(
 
 
 
-// =====================
+// ======================
 // ABSEN MASUK
-// =====================
+// ======================
 
 
 function absenMasuk(){
 
 
-let nama=
+let nama =
 document.getElementById("nama").value.trim();
 
 
@@ -406,23 +405,24 @@ navigator.geolocation.getCurrentPosition(
 function(pos){
 
 
-latitude=
+latitude =
 pos.coords.latitude;
 
 
-longitude=
+longitude =
 pos.coords.longitude;
 
 
 
 document.getElementById("lokasi").innerHTML=
 
-"Lat : "+latitude+
-"<br>Lng : "+longitude;
+"Latitude : "+latitude+
+"<br>"+
+"Longitude : "+longitude;
 
 
 
-let foto=
+let foto =
 ambilFoto();
 
 
@@ -434,12 +434,6 @@ document.getElementById("preview").style.display="block";
 
 
 
-document.getElementById("hasil").innerHTML=
-"Mengirim data...";
-
-
-
-
 
 fetch(
 
@@ -447,9 +441,7 @@ URL_APPS_SCRIPT,
 
 {
 
-
 method:"POST",
-
 
 body:JSON.stringify({
 
@@ -463,9 +455,7 @@ longitude:longitude,
 
 foto:foto
 
-
 })
-
 
 }
 
@@ -491,6 +481,7 @@ document.getElementById("hasil").innerHTML=data;
 
 
 
+
 },
 
 
@@ -499,13 +490,6 @@ function(){
 
 alert("GPS tidak aktif");
 
-},
-
-
-{
-
-enableHighAccuracy:true
-
 }
 
 
@@ -513,7 +497,6 @@ enableHighAccuracy:true
 );
 
 
-
 }
 
 
@@ -523,15 +506,15 @@ enableHighAccuracy:true
 
 
 
-// =====================
+// ======================
 // ABSEN PULANG
-// =====================
+// ======================
 
 
 function absenPulang(){
 
 
-let nama=
+let nama =
 document.getElementById("nama").value.trim();
 
 
@@ -564,7 +547,6 @@ nama:nama
 })
 
 }
-
 
 )
 
