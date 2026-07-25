@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<title>Absensi Karyawan</title>
+
+<style>
+
+body{
+font-family:Arial;
+background:#f5f5f5;
+text-align:center;
+padding:20px;
+}
+
+h2{
+color:#1a73e8;
+}
+
+input,button{
+
+width:90%;
+padding:14px;
+margin:8px;
+font-size:16px;
+border-radius:8px;
+
+}
+
+input{
+border:1px solid #ccc;
+}
+
+
+button{
+
+border:none;
+color:white;
+
+}
+
+
+#kameraBtn{
+background:#ff9800;
+}
+
+#masukBtn{
+background:#1a73e8;
+}
+
+#pulangBtn{
+background:#e53935;
+}
+
+
+video,img{
+
+width:300px;
+border-radius:12px;
+border:2px solid #ddd;
+
+}
+
+
+#hasil{
+
+font-weight:bold;
+color:green;
+
+}
+
+</style>
+
+</head>
+
+
+<body>
+
+
+<h2>
+ABSENSI KARYAWAN
+</h2>
+
+
+<input 
+id="nama"
+placeholder="Masukkan Nama">
+
+
+<br>
+
+
+<video
+id="kamera"
+autoplay
+playsinline
+muted>
+</video>
+
+
+<br>
+
+
+<button
+id="kameraBtn"
+onclick="bukaKamera()">
+
+📷 AKTIFKAN KAMERA
+
+</button>
+
+
+<br>
+
+
+<img
+id="preview"
+style="display:none;">
+
+
+<canvas
+id="canvas"
+style="display:none;">
+</canvas>
+
+
+
+<button
+id="masukBtn"
+onclick="absenMasuk()">
+
+📍 ABSEN MASUK
+
+</button>
+
+
+<button
+id="pulangBtn"
+onclick="absenPulang()">
+
+🚪 ABSEN PULANG
+
+</button>
+
+
+
+<p id="lokasi"></p>
+
+<p id="hasil"></p>
+
+
+
+<script>
+
+
+// GANTI URL INI
+
+const URL_APPS_SCRIPT =
+
+"https://script.google.com/macros/s/AKfycbwHh4nxokmx_hSyLPMJg9GQYjDXuDFUA5Z6GfGN-vSglje5f2mgeBGEqQFyOsk4O_zv/exec";
+
+
+
+let latitude="";
+
+let longitude="";
+
+let video =
+document.getElementById("kamera");
+
+
+
+
+
+// ======================
+// AKTIFKAN KAMERA
+// ======================
+
+
+function bukaKamera(){
+
+
+navigator.mediaDevices.getUserMedia({
+
+video:{
+facingMode:"user"
+},
+
+audio:false
+
+})
+
+
+.then(function(stream){
+
+
+video.srcObject=stream;
+
+
+video.play();
+
+
+document.getElementById("hasil").innerHTML=
+"✅ Kamera aktif";
+
+
+})
+
+
+.catch(function(error){
+
+
+alert(
+"Kamera gagal:\n"+
+error.name+
+"\n"+
+error.message
+);
+
+
+});
+
+
+}
+
+
+
+
+
+
+
+// ======================
+// AMBIL FOTO + WATERMARK
+// ======================
+
+
+function ambilFoto(){
+
+
+let canvas =
+document.getElementById("canvas");
+
+
+canvas.width =
+video.videoWidth;
+
+
+canvas.height =
+video.videoHeight;
+
+
+
+let ctx =
+canvas.getContext("2d");
+
+
+
+ctx.drawImage(
+
+video,
+
+0,
+
+0
+
+);
+
+
+
+
+// watermark
+
+ctx.fillStyle =
+"rgba(0,0,0,0.6)";
+
+
+ctx.fillRect(
+
+0,
+
+canvas.height-120,
+
+canvas.width,
+
+120
+
+);
+
+
+
+ctx.fillStyle="white";
+
+ctx.font="22px Arial";
+
+
+
+let nama =
+document.getElementById("nama").value;
+
+
+
+let waktu =
+new Date();
+
+
+
+ctx.fillText(
+
+"UPT PUSKESMAS LONG MESANGAT",
+
+20,
+
+canvas.height-90
+
+);
+
+
+
+ctx.fillText(
+
+"Nama : "+nama,
+
+20,
+
+canvas.height-60
+
+);
+
+
+
+ctx.fillText(
+
+"Tanggal : "+
+waktu.toLocaleDateString("id-ID"),
+
+20,
+
+canvas.height-35
+
+);
+
+
+
+ctx.fillText(
+
+"Jam : "+
+waktu.toLocaleTimeString("id-ID"),
+
+20,
+
+canvas.height-10
+
+);
+
+
+
+return canvas.toDataURL(
+
+"image/jpeg",
+
+0.9
+
+);
+
+
+
+}
+
+
+
+
+
+
+
+// ======================
+// ABSEN MASUK
+// ======================
+
+
+function absenMasuk(){
+
+
+let nama =
+document.getElementById("nama").value.trim();
+
+
+
+if(nama==""){
+
+alert("Isi nama dulu");
+
+return;
+
+}
+
+
+
+navigator.geolocation.getCurrentPosition(
+
+
+
+function(pos){
+
+
+latitude =
+pos.coords.latitude;
+
+
+longitude =
+pos.coords.longitude;
+
+
+
+document.getElementById("lokasi").innerHTML=
+
+"Latitude : "+latitude+
+"<br>"+
+"Longitude : "+longitude;
+
+
+
+let foto =
+ambilFoto();
+
+
+
+document.getElementById("preview").src=foto;
+
+
+document.getElementById("preview").style.display="block";
+
+
+
+
+fetch(
+
+URL_APPS_SCRIPT,
+
+{
+
+method:"POST",
+
+body:JSON.stringify({
+
+aksi:"masuk",
+
+nama:nama,
+
+latitude:latitude,
+
+longitude:longitude,
+
+foto:foto
+
+})
+
+}
+
+)
+
+
+
+.then(function(res){
+
+return res.text();
+
+})
+
+
+.then(function(data){
+
+
+document.getElementById("hasil").innerHTML=data;
+
+
+});
+
+
+
+
+
+},
+
+
+
+function(){
+
+alert("GPS tidak aktif");
+
+}
+
+
+
+);
+
+
+}
+
+
+
+
+
+
+
+
+// ======================
+// ABSEN PULANG
+// ======================
+
+
+function absenPulang(){
+
+
+let nama =
+document.getElementById("nama").value.trim();
+
+
+
+if(nama==""){
+
+alert("Isi nama dulu");
+
+return;
+
+}
+
+
+
+
+fetch(
+
+URL_APPS_SCRIPT,
+
+{
+
+method:"POST",
+
+body:JSON.stringify({
+
+aksi:"pulang",
+
+nama:nama
+
+})
+
+}
+
+)
+
+
+
+.then(function(res){
+
+return res.text();
+
+})
+
+
+.then(function(data){
+
+document.getElementById("hasil").innerHTML=data;
+
+});
+
+
+}
+
+
+
+</script>
+
+
+</body>
+
+</html>
