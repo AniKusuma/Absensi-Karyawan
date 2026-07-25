@@ -133,6 +133,18 @@ onclick="pulang()">
 
 </button>
 
+<br>
+
+<button 
+id="laporanBtn"
+onclick="laporanKerja()"
+style="
+background:#4caf50;
+">
+
+📷 LAPORAN KERJA
+
+</button>
 
 
 <p id="lokasi"></p>
@@ -177,6 +189,11 @@ let latitude="";
 let longitude="";
 
 let kameraStream=null;
+
+
+// foto laporan kerja
+
+let fotoLaporan="";
 
 // =======================
 // HITUNG JARAK GPS
@@ -734,7 +751,254 @@ document.getElementById("hasil").innerHTML=
 }
 
 
+// =======================
+// LAPORAN KERJA FOTO
+// =======================
 
+
+function laporanKerja(){
+
+
+let nama =
+document.getElementById("nama")
+.value.trim();
+
+
+
+if(nama==""){
+
+alert("Isi nama terlebih dahulu");
+
+return;
+
+}
+
+
+
+let video =
+document.getElementById("kamera");
+
+
+if(video.videoWidth==0){
+
+alert("Aktifkan kamera terlebih dahulu");
+
+return;
+
+}
+
+
+
+let canvas =
+document.getElementById("canvas");
+
+
+canvas.width =
+video.videoWidth;
+
+
+canvas.height =
+video.videoHeight;
+
+
+
+let ctx =
+canvas.getContext("2d");
+
+
+
+// ambil foto kegiatan
+
+ctx.drawImage(
+
+video,
+
+0,
+
+0,
+
+canvas.width,
+
+canvas.height
+
+);
+
+
+
+
+// =======================
+// WATERMARK LAPORAN
+// =======================
+
+
+ctx.fillStyle =
+"rgba(0,0,0,0.6)";
+
+
+ctx.fillRect(
+
+0,
+
+canvas.height-120,
+
+canvas.width,
+
+120
+
+);
+
+
+
+let waktu = new Date();
+
+
+ctx.fillStyle="white";
+
+ctx.font="22px Arial";
+
+
+
+ctx.fillText(
+
+"UPT PUSKESMAS LONG MESANGAT",
+
+20,
+
+canvas.height-90
+
+);
+
+
+
+ctx.fillText(
+
+"Nama : "+nama,
+
+20,
+
+canvas.height-60
+
+);
+
+
+
+ctx.fillText(
+
+"Tanggal : "+
+waktu.toLocaleDateString("id-ID"),
+
+20,
+
+canvas.height-35
+
+);
+
+
+
+ctx.fillText(
+
+"Jam : "+
+waktu.toLocaleTimeString("id-ID"),
+
+20,
+
+canvas.height-10
+
+);
+
+
+
+
+// ubah menjadi gambar
+
+fotoLaporan =
+canvas.toDataURL(
+
+"image/jpeg",
+
+0.9
+
+);
+
+
+
+
+// tampilkan preview
+
+document.getElementById("preview").src =
+fotoLaporan;
+
+
+document.getElementById("preview").style.display =
+"block";
+
+
+
+document.getElementById("hasil").innerHTML =
+"Mengirim laporan...";
+
+
+
+
+
+// kirim ke Apps Script
+
+
+fetch(
+
+URL_APPS_SCRIPT,
+
+{
+
+method:"POST",
+
+body:JSON.stringify({
+
+aksi:"laporan",
+
+nama:nama,
+
+foto:fotoLaporan
+
+})
+
+}
+
+)
+
+
+
+.then(function(res){
+
+return res.text();
+
+})
+
+
+
+.then(function(data){
+
+
+document.getElementById("hasil").innerHTML=data;
+
+
+})
+
+
+
+.catch(function(error){
+
+
+document.getElementById("hasil").innerHTML=
+
+"Error : "+error;
+
+
+});
+
+
+
+}
 </script>
 
 
