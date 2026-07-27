@@ -5,7 +5,8 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
-<title>Absensi Karyawan</title>
+<title>Absensi & Laporan Kerja</title>
+
 
 <style>
 
@@ -16,9 +17,11 @@ body{
     padding:20px;
 }
 
+
 h2{
     color:#1a73e8;
 }
+
 
 input{
     width:90%;
@@ -29,7 +32,9 @@ input{
     border:1px solid #ccc;
 }
 
+
 button{
+
     width:90%;
     padding:14px;
     margin:8px;
@@ -37,38 +42,58 @@ button{
     border:none;
     border-radius:8px;
     color:white;
+
 }
+
 
 #kameraBtn{
     background:#ff9800;
 }
 
+
 #masukBtn{
     background:#1a73e8;
 }
+
 
 #pulangBtn{
     background:#e53935;
 }
 
+
+#laporanBtn{
+    background:#43a047;
+}
+
+
 video,img{
+
     width:300px;
     border-radius:12px;
     border:2px solid #ddd;
     margin-top:10px;
+
 }
+
 
 #hasil{
+
     font-weight:bold;
     color:green;
+
 }
+
 
 #lokasi{
+
     font-size:13px;
     color:#666;
+
 }
 
+
 </style>
+
 
 </head>
 
@@ -79,13 +104,17 @@ video,img{
 <h2>ABSENSI KARYAWAN</h2>
 
 
-<input id="nama" placeholder="Masukkan Nama">
+<input 
+id="nama"
+placeholder="Masukkan Nama">
 
 
 <br>
 
 
-<video 
+<!-- KAMERA ABSENSI -->
+
+<video
 id="kamera"
 autoplay
 playsinline
@@ -93,29 +122,37 @@ muted>
 </video>
 
 
-<canvas id="canvas"
+
+<canvas
+id="canvas"
 style="display:none;">
 </canvas>
+
 
 
 <br>
 
 
-<button 
+<button
 id="kameraBtn"
-onclick="bukaKamera()">
+onclick="bukaKameraDepan()">
 
-📷 AKTIFKAN KAMERA
+📷 AKTIFKAN KAMERA ABSEN
 
 </button>
 
 
-<img id="preview"
+
+<img 
+id="preview"
 style="display:none;">
 
 
 
-<button 
+<br>
+
+
+<button
 id="masukBtn"
 onclick="absenMasuk()">
 
@@ -125,7 +162,7 @@ onclick="absenMasuk()">
 
 
 
-<button 
+<button
 id="pulangBtn"
 onclick="pulang()">
 
@@ -133,34 +170,52 @@ onclick="pulang()">
 
 </button>
 
-<br>
 
-<button 
+
+<hr>
+
+
+
+<h3>LAPORAN KERJA</h3>
+
+
+<!-- KAMERA BELAKANG KHUSUS LAPORAN -->
+
+<input
+
+type="file"
+
+id="fotoLaporan"
+
+accept="image/*"
+
+capture="environment"
+
+style="display:none"
+
+onchange="kirimLaporan()">
+
+
+
+<button
 id="laporanBtn"
-onclick="laporanKerja()"
-style="
-background:#4caf50;
-">
+onclick="bukaKameraLaporan()">
 
-📷 LAPORAN KERJA
+📷 FOTO LAPORAN KERJA
 
 </button>
+
 
 
 <p id="lokasi"></p>
 
 <p id="hasil"></p>
-
-
-
 <script>
 
 
-// =======================
-// URL APPS SCRIPT
-// GANTI DENGAN URL ANDA
-// =======================
-
+// ==============================
+// URL GOOGLE APPS SCRIPT
+// ==============================
 
 const URL_APPS_SCRIPT =
 
@@ -168,46 +223,49 @@ const URL_APPS_SCRIPT =
 
 
 
-// =======================
-// LOKASI KANTOR
-// =======================
-
+// ==============================
+// KOORDINAT KANTOR
+// ==============================
 
 const LAT_KANTOR = 0.6364024882517407;
 
 const LNG_KANTOR = 116.69394079221424;
 
 
-// radius 200 meter
-
 const RADIUS = 200;
 
 
 
-let latitude="";
+let latitude = "";
 
-let longitude="";
+let longitude = "";
 
-let kameraStream=null;
+let kameraStream = null;
 
 
-// foto laporan kerja
 
-let fotoLaporan="";
 
-// =======================
+
+// ==============================
 // HITUNG JARAK GPS
-// =======================
+// ==============================
+
 
 function hitungJarak(lat1,lon1,lat2,lon2){
 
+
 const R = 6371000;
 
+
 const dLat =
-(lat2-lat1) * Math.PI / 180;
+(lat2-lat1) *
+Math.PI / 180;
+
 
 const dLon =
-(lon2-lon1) * Math.PI / 180;
+(lon2-lon1) *
+Math.PI / 180;
+
 
 
 const a =
@@ -226,6 +284,7 @@ Math.sin(dLon/2) *
 Math.sin(dLon/2);
 
 
+
 const c =
 2 *
 Math.atan2(
@@ -234,36 +293,54 @@ Math.sqrt(1-a)
 );
 
 
+
 return R*c;
+
 
 }
 
 
 
-// =======================
-// AKTIFKAN KAMERA
-// =======================
 
 
-function bukaKamera(){
+
+// ==============================
+// KAMERA DEPAN ABSENSI
+// ==============================
 
 
-const video=document.getElementById("kamera");
+function bukaKameraDepan(){
+
+
+const video =
+document.getElementById("kamera");
+
 
 
 navigator.mediaDevices.getUserMedia({
 
+
 video:{
-    facingMode:"user",
-    width:{
-        ideal:640
-    },
-    height:{
-        ideal:480
-    }
+
+
+facingMode:"user",
+
+
+width:{
+ideal:640
 },
 
+
+height:{
+ideal:480
+}
+
+
+},
+
+
 audio:false
+
 
 
 })
@@ -272,10 +349,10 @@ audio:false
 .then(function(stream){
 
 
-kameraStream=stream;
+kameraStream = stream;
 
 
-video.srcObject=stream;
+video.srcObject = stream;
 
 
 video.play();
@@ -283,26 +360,30 @@ video.play();
 
 
 document.getElementById("hasil").innerHTML =
-"✅ Kamera aktif";
+
+"✅ Kamera absensi aktif";
+
 
 
 })
+
 
 
 .catch(function(error){
 
 
 alert(
+
 "Kamera gagal:\n"+
-error.name+
-"\n"+
 error.message
+
 );
 
 
 });
 
 
+
 }
 
 
@@ -310,35 +391,51 @@ error.message
 
 
 
-// =======================
-// AMBIL FOTO WATERMARK
-// =======================
 
 
-function ambilFoto(){
+// ==============================
+// AMBIL FOTO ABSEN + WATERMARK
+// ==============================
 
 
-let video=document.getElementById("kamera");
+function ambilFotoAbsen(){
 
 
-let canvas=document.getElementById("canvas");
+
+let video =
+document.getElementById("kamera");
+
 
 
 if(video.videoWidth==0){
 
+
 alert("Kamera belum siap");
+
 
 return "";
 
 }
 
 
-canvas.width=video.videoWidth;
 
-canvas.height=video.videoHeight;
+let canvas =
+document.getElementById("canvas");
 
 
-let ctx=canvas.getContext("2d");
+
+canvas.width =
+video.videoWidth;
+
+
+canvas.height =
+video.videoHeight;
+
+
+
+let ctx =
+canvas.getContext("2d");
+
 
 
 ctx.drawImage(
@@ -357,9 +454,13 @@ canvas.height
 
 
 
-// watermark
 
-ctx.fillStyle="rgba(0,0,0,0.6)";
+
+// WATERMARK
+
+
+ctx.fillStyle =
+"rgba(0,0,0,0.6)";
 
 
 ctx.fillRect(
@@ -381,11 +482,15 @@ ctx.fillStyle="white";
 ctx.font="22px Arial";
 
 
+
 let nama =
 document.getElementById("nama").value;
 
 
-let waktu = new Date();
+
+let waktu =
+new Date();
+
 
 
 
@@ -439,6 +544,8 @@ canvas.height-10
 
 
 
+
+
 return canvas.toDataURL(
 
 "image/jpeg",
@@ -448,16 +555,25 @@ return canvas.toDataURL(
 );
 
 
+
 }
-// =======================
+
+
+
+
+
+
+
+// ==============================
 // ABSEN MASUK
-// =======================
+// ==============================
 
 
 function absenMasuk(){
 
 
 let nama =
+
 document.getElementById("nama")
 .value.trim();
 
@@ -465,16 +581,21 @@ document.getElementById("nama")
 
 if(nama==""){
 
+
 alert("Isi nama terlebih dahulu");
 
 return;
+
 
 }
 
 
 
+
 document.getElementById("hasil").innerHTML =
+
 "Mengambil lokasi...";
+
 
 
 
@@ -483,6 +604,7 @@ navigator.geolocation.getCurrentPosition(
 
 
 function(pos){
+
 
 
 latitude =
@@ -496,45 +618,51 @@ pos.coords.longitude;
 
 document.getElementById("lokasi").innerHTML =
 
-"Latitude : "+latitude+
-"<br>"+
-"Longitude : "+longitude;
+
+"Latitude : "+
+latitude+
+"<br>Longitude : "+
+longitude;
 
 
 
-// =======================
-// CEK JARAK KANTOR
-// =======================
 
 
-let jarak = hitungJarak(
+
+let jarak =
+
+hitungJarak(
 
 latitude,
+
 longitude,
 
 LAT_KANTOR,
+
 LNG_KANTOR
 
 );
 
 
 
+
+
+
 if(jarak > RADIUS){
+
+
+document.getElementById("hasil").innerHTML =
+
+"❌ Di luar area kantor";
 
 
 alert(
 
-"❌ Absen ditolak\n\n"+
-"Anda berada di luar area kantor.\n"+
-"Jarak Anda : "+
+"Absen ditolak\nJarak Anda "+
 Math.round(jarak)+
 " meter"
 
 );
-
-
-document.getElementById("hasil").innerHTML =
-"Lokasi tidak sesuai";
 
 
 return;
@@ -544,20 +672,12 @@ return;
 
 
 
-document.getElementById("hasil").innerHTML =
-
-"✅ Lokasi sesuai\n"+
-"Jarak : "+
-Math.round(jarak)+
-" meter";
 
 
 
+let foto =
 
-
-// ambil foto
-
-let foto = ambilFoto();
+ambilFotoAbsen();
 
 
 
@@ -569,20 +689,14 @@ return;
 
 
 
-document.getElementById("preview").src=foto;
-
-document.getElementById("preview").style.display="block";
-
 
 
 document.getElementById("hasil").innerHTML =
+
 "Mengirim data...";
 
 
 
-
-
-// kirim ke Apps Script
 
 
 fetch(
@@ -591,21 +705,30 @@ URL_APPS_SCRIPT,
 
 {
 
+
 method:"POST",
+
 
 body:JSON.stringify({
 
+
 aksi:"masuk",
+
 
 nama:nama,
 
+
 latitude:latitude,
+
 
 longitude:longitude,
 
+
 foto:foto
 
+
 })
+
 
 }
 
@@ -613,14 +736,10 @@ foto:foto
 
 
 
-.then(function(res){
-
-return res.text();
-
-})
+.then(res=>res.text())
 
 
-.then(function(data){
+.then(data=>{
 
 
 document.getElementById("hasil").innerHTML=data;
@@ -629,12 +748,13 @@ document.getElementById("hasil").innerHTML=data;
 })
 
 
-.catch(function(error){
+
+.catch(err=>{
 
 
 document.getElementById("hasil").innerHTML=
 
-"Error : "+error;
+"Error : "+err;
 
 
 });
@@ -656,7 +776,9 @@ alert("GPS tidak aktif");
 },
 
 
+
 {
+
 
 enableHighAccuracy:true,
 
@@ -664,7 +786,9 @@ timeout:10000,
 
 maximumAge:0
 
+
 }
+
 
 
 
@@ -673,275 +797,212 @@ maximumAge:0
 
 
 }
+// ==============================
+// LAPORAN KERJA
+// KAMERA BELAKANG
+// ==============================
+
+
+function bukaKameraLaporan(){
+
+
+document.getElementById("fotoLaporan").click();
+
+
+}
 
 
 
 
+// ==============================
+// KIRIM LAPORAN KERJA
+// ==============================
+
+
+function kirimLaporan(){
 
 
 
-// =======================
-// ABSEN PULANG
-// =======================
+let file =
+
+document.getElementById("fotoLaporan")
+.files[0];
 
 
-function pulang(){
+
+if(!file){
+
+return;
+
+}
+
+
 
 
 let nama =
+
 document.getElementById("nama")
 .value.trim();
 
 
 
-if(nama==""){
-
-alert("Isi nama terlebih dahulu");
-
-return;
-
-}
-
-
-
-fetch(
-
-URL_APPS_SCRIPT,
-
-{
-
-method:"POST",
-
-body:JSON.stringify({
-
-aksi:"pulang",
-
-nama:nama
-
-})
-
-}
-
-)
-
-
-
-.then(function(res){
-
-return res.text();
-
-})
-
-
-.then(function(data){
-
-document.getElementById("hasil").innerHTML=data;
-
-})
-
-
-.catch(function(error){
-
-document.getElementById("hasil").innerHTML=
-"Error : "+error;
-
-});
-
-
-}
-
-
-// =======================
-// LAPORAN KERJA FOTO
-// =======================
-
-
-function laporanKerja(){
-
-
-let nama =
-document.getElementById("nama")
-.value.trim();
-
-
 
 if(nama==""){
 
+
 alert("Isi nama terlebih dahulu");
 
+
 return;
+
 
 }
 
 
-
-let video =
-document.getElementById("kamera");
-
-
-if(video.videoWidth==0){
-
-alert("Aktifkan kamera terlebih dahulu");
-
-return;
-
-}
-
-
-
-let canvas =
-document.getElementById("canvas");
-
-
-canvas.width =
-video.videoWidth;
-
-
-canvas.height =
-video.videoHeight;
-
-
-
-let ctx =
-canvas.getContext("2d");
-
-
-
-// ambil foto kegiatan
-
-ctx.drawImage(
-
-video,
-
-0,
-
-0,
-
-canvas.width,
-
-canvas.height
-
-);
-
-
-
-
-// =======================
-// WATERMARK LAPORAN
-// =======================
-
-
-ctx.fillStyle =
-"rgba(0,0,0,0.6)";
-
-
-ctx.fillRect(
-
-0,
-
-canvas.height-120,
-
-canvas.width,
-
-120
-
-);
-
-
-
-let waktu = new Date();
-
-
-ctx.fillStyle="white";
-
-ctx.font="22px Arial";
-
-
-
-ctx.fillText(
-
-"UPT PUSKESMAS LONG MESANGAT",
-
-20,
-
-canvas.height-90
-
-);
-
-
-
-ctx.fillText(
-
-"Nama : "+nama,
-
-20,
-
-canvas.height-60
-
-);
-
-
-
-ctx.fillText(
-
-"Tanggal : "+
-waktu.toLocaleDateString("id-ID"),
-
-20,
-
-canvas.height-35
-
-);
-
-
-
-ctx.fillText(
-
-"Jam : "+
-waktu.toLocaleTimeString("id-ID"),
-
-20,
-
-canvas.height-10
-
-);
-
-
-
-
-// ubah menjadi gambar
-
-fotoLaporan =
-canvas.toDataURL(
-
-"image/jpeg",
-
-0.9
-
-);
-
-
-
-
-// tampilkan preview
-
-document.getElementById("preview").src =
-fotoLaporan;
-
-
-document.getElementById("preview").style.display =
-"block";
 
 
 
 document.getElementById("hasil").innerHTML =
+
+"Membaca foto...";
+
+
+
+
+
+let reader = new FileReader();
+
+
+
+
+reader.onload = function(e){
+
+
+
+let foto = e.target.result;
+
+
+
+
+document.getElementById("hasil").innerHTML =
+
 "Mengirim laporan...";
 
 
 
 
 
-// kirim ke Apps Script
+
+fetch(
+
+URL_APPS_SCRIPT,
+
+{
+
+
+method:"POST",
+
+
+body:JSON.stringify({
+
+
+aksi:"laporan",
+
+
+nama:nama,
+
+
+foto:foto
+
+
+})
+
+
+}
+
+)
+
+
+
+.then(function(res){
+
+return res.text();
+
+})
+
+
+
+.then(function(data){
+
+
+document.getElementById("hasil").innerHTML=data;
+
+
+})
+
+
+
+.catch(function(error){
+
+
+document.getElementById("hasil").innerHTML=
+
+"Error : "+error;
+
+
+});
+
+
+
+
+};
+
+
+
+
+reader.readAsDataURL(file);
+
+
+
+}
+
+
+
+
+
+
+
+
+// ==============================
+// ABSEN PULANG
+// ==============================
+
+
+function pulang(){
+
+
+let nama =
+
+document.getElementById("nama")
+.value.trim();
+
+
+
+
+if(nama==""){
+
+
+alert("Isi nama terlebih dahulu");
+
+
+return;
+
+
+}
+
+
+
+
 
 
 fetch(
@@ -950,17 +1011,21 @@ URL_APPS_SCRIPT,
 
 {
 
+
 method:"POST",
+
 
 body:JSON.stringify({
 
-aksi:"laporan",
 
-nama:nama,
+aksi:"pulang",
 
-foto:fotoLaporan
+
+nama:nama
+
 
 })
+
 
 }
 
@@ -999,6 +1064,9 @@ document.getElementById("hasil").innerHTML=
 
 
 }
+
+
+
 </script>
 
 
