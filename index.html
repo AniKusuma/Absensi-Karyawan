@@ -154,7 +154,23 @@
   <div class="app-card">
     <h2>ABSENSI KARYAWAN</h2>
 
-    <input id="nama" placeholder="Masukkan Nama Lengkap">
+    <!-- DROPDOWN NAMA KARYAWAN -->
+    <select id="nama">
+      <option value="">-- Pilih Nama Karyawan --</option>
+      <option value="Ayu Setnia Sulistio Putri">Ayu Setnia Sulistio Putri</option>
+      <option value="Badriyah Ani Kusuma Putri">Badriyah Ani Kusuma Putri</option>
+      <option value="Dwi Erma Wahana">Dwi Erma Wahana</option>
+      <option value="Helda Fitriana">Helda Fitriana</option>
+      <option value="Linda Ayu Puspita Sari">Linda Ayu Puspita Sari</option>
+      <option value="Maria Emensia Ero Ruing">Maria Emensia Ero Ruing</option>
+      <option value="Muhammad Anggriawan">Muhammad Anggriawan</option>
+      <option value="Putri Mila Victoria">Putri Mila Victoria</option>
+      <option value="Siska Dwi Yuliani">Siska Dwi Yuliani</option>
+      <option value="Siti Kholifah">Siti Kholifah</option>
+      <option value="Sugeng Islamuddin">Sugeng Islamuddin</option>
+      <option value="Yeni Berria">Yeni Berria</option>
+      <!-- Tambahkan nama karyawan lainnya di sini -->
+    </select>
 
     <select id="modeAbsen">
       <option value="Absen Masuk - Puskesmas">🏥 Absen Masuk (Puskesmas)</option>
@@ -319,7 +335,7 @@
     async function jepretFoto() {
       let nama = document.getElementById("nama").value.trim();
       if (nama === "") {
-        alert("Isi nama terlebih dahulu");
+        alert("Pilih nama karyawan terlebih dahulu");
         return;
       }
 
@@ -428,7 +444,7 @@
     async function kirimIzin() {
       let nama = document.getElementById("nama").value.trim();
       if (nama === "") {
-        alert("Isi nama terlebih dahulu");
+        alert("Pilih nama karyawan terlebih dahulu");
         return;
       }
 
@@ -497,7 +513,7 @@
 
       let nama = document.getElementById("nama").value.trim();
       if (nama === "") {
-        alert("Isi nama terlebih dahulu");
+        alert("Pilih nama karyawan terlebih dahulu");
         fileInput.value = "";
         return;
       }
