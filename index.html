@@ -11,75 +11,80 @@
 <style>
 
 body{
-    font-family:Arial,sans-serif;
-    background:#f5f5f5;
-    text-align:center;
-    padding:20px;
+font-family:Arial,sans-serif;
+background:#f5f5f5;
+text-align:center;
+padding:20px;
 }
 
 
 h2{
-    color:#1a73e8;
+color:#1a73e8;
 }
 
 
 input,select,textarea{
 
-    width:90%;
-    padding:12px;
-    font-size:16px;
-    margin:10px;
-    border-radius:8px;
-    border:1px solid #ccc;
+width:90%;
+padding:12px;
+font-size:16px;
+margin:10px;
+border-radius:8px;
+border:1px solid #ccc;
 
 }
 
 
 button{
 
-    width:90%;
-    padding:14px;
-    margin:8px;
-    font-size:16px;
-    border:none;
-    border-radius:8px;
-    color:white;
+width:90%;
+padding:14px;
+margin:8px;
+font-size:16px;
+border:none;
+border-radius:8px;
+color:white;
 
 }
 
 
 #kameraBtn{
-    background:#ff9800;
+background:#ff9800;
 }
 
 
 #masukBtn{
-    background:#1a73e8;
+background:#1a73e8;
 }
 
 
 #pulangBtn{
-    background:#e53935;
+background:#e53935;
 }
 
 
 #izinBtn{
-    background:#8e24aa;
+background:#8e24aa;
+}
+
+
+#kirimIzinBtn{
+background:#7b1fa2;
 }
 
 
 #laporanBtn{
-    background:#43a047;
+background:#43a047;
 }
 
 
 
 video,img{
 
-    width:300px;
-    border-radius:12px;
-    border:2px solid #ddd;
-    margin-top:10px;
+width:300px;
+border-radius:12px;
+border:2px solid #ddd;
+margin-top:10px;
 
 }
 
@@ -87,26 +92,28 @@ video,img{
 
 #hasil{
 
-    font-weight:bold;
-    color:green;
+font-weight:bold;
+color:green;
 
 }
+
 
 
 #lokasi{
 
-    font-size:13px;
-    color:#666;
+font-size:13px;
+color:#666;
 
 }
 
 
+
 #formIzin{
 
-    display:none;
-    background:white;
-    padding:10px;
-    border-radius:10px;
+display:none;
+background:white;
+padding:10px;
+border-radius:10px;
 
 }
 
@@ -137,8 +144,6 @@ placeholder="Masukkan Nama">
 
 
 
-<!-- PILIH STATUS ABSEN -->
-
 <select id="modeAbsen">
 
 
@@ -149,7 +154,6 @@ placeholder="Masukkan Nama">
 </option>
 
 
-
 <option value="rujukan">
 
 🚑 Tugas Rujukan
@@ -157,16 +161,17 @@ placeholder="Masukkan Nama">
 </option>
 
 
+<option value="pusban">
+
+🏘️ Dinas Pusban
+
+</option>
+
+
 </select>
 
 
-
 <br>
-
-
-
-
-<!-- KAMERA ABSEN -->
 
 
 <video
@@ -175,7 +180,6 @@ autoplay
 playsinline
 muted>
 </video>
-
 
 
 <canvas
@@ -196,12 +200,6 @@ onclick="bukaKameraDepan()">
 📷 AKTIFKAN KAMERA ABSEN
 
 </button>
-
-
-
-<img
-id="preview"
-style="display:none;">
 
 
 
@@ -228,10 +226,6 @@ onclick="pulang()">
 </button>
 
 
-<br>
-
-
-
 <button
 id="izinBtn"
 onclick="bukaIzin()">
@@ -241,12 +235,6 @@ onclick="bukaIzin()">
 </button>
 
 
-<hr>
-
-
-
-<!-- FORM IZIN -->
-
 
 <div id="formIzin">
 
@@ -254,7 +242,6 @@ onclick="bukaIzin()">
 <h3>
 FORM IZIN
 </h3>
-
 
 
 <select id="jenisIzin">
@@ -275,17 +262,14 @@ Lainnya
 </option>
 
 
-
 </select>
 
 
 
 <textarea
 id="keteranganIzin"
-placeholder="Keterangan izin">
+placeholder="Keterangan izin (opsional)">
 </textarea>
-
-
 
 
 <button
@@ -297,14 +281,11 @@ KIRIM IZIN
 </button>
 
 
-
 </div>
 
 
 
-
 <hr>
-
 
 
 <h3>
@@ -329,35 +310,24 @@ onchange="kirimLaporan()">
 
 
 
-
-
 <button
 
 id="laporanBtn"
 
 onclick="bukaKameraLaporan()">
 
-
 📷 FOTO LAPORAN KERJA
-
 
 </button>
 
 
 
-
-
 <p id="lokasi"></p>
-
 
 <p id="hasil"></p>
 
+
 <script>
-
-
-// ==============================
-// URL GOOGLE APPS SCRIPT
-// ==============================
 
 
 const URL_APPS_SCRIPT =
@@ -365,96 +335,54 @@ const URL_APPS_SCRIPT =
 "https://script.google.com/macros/s/AKfycbwHh4nxokmx_hSyLPMJg9GQYjDXuDFUA5Z6GfGN-vSglje5f2mgeBGEqQFyOsk4O_zv/exec";
 
 
-
-
 // ==============================
-// DATA LOKASI ABSEN
+// DAFTAR WILAYAH ABSEN
 // ==============================
-
-
-// Koordinat bisa disesuaikan lagi
 
 
 const DAFTAR_LOKASI = [
 
-
-
 {
-
 nama:"Puskesmas Long Mesangat",
-
 lat:0.636402,
-
 lng:116.693940,
-
 radius:5000
-
 },
 
 
-
 {
-
-nama:"Rujukan Samarinda",
-
+nama:"Samarinda",
 lat:-0.5022,
-
 lng:117.1536,
-
 radius:30000
-
 },
 
 
-
-
 {
-
-nama:"Rujukan Sangatta",
-
+nama:"Sangatta",
 lat:0.4948,
-
 lng:117.1436,
-
 radius:30000
-
 },
 
 
-
-
 {
-
-nama:"Rujukan Tenggarong",
-
+nama:"Tenggarong",
 lat:-0.4267,
-
 lng:116.9872,
-
 radius:30000
-
 },
 
 
-
-
 {
-
-nama:"Rujukan Muara Bengkal",
-
+nama:"Muara Bengkal",
 lat:0.1040,
-
 lng:116.9000,
-
 radius:30000
-
 }
 
 
-
 ];
-
-
 
 
 
@@ -467,77 +395,46 @@ let kameraStream=null;
 
 
 
-
-
 // ==============================
 // HITUNG JARAK GPS
 // ==============================
 
 
-
 function hitungJarak(lat1,lon1,lat2,lon2){
-
 
 
 const R=6371000;
 
 
+const dLat=(lat2-lat1)*Math.PI/180;
 
-const dLat=
-
-(lat2-lat1)*
-
-Math.PI/180;
+const dLon=(lon2-lon1)*Math.PI/180;
 
 
 
-const dLon=
+const a=
 
-(lon2-lon1)*
-
-Math.PI/180;
-
-
-
-
-const a =
-
-Math.sin(dLat/2) *
-
+Math.sin(dLat/2)*
 Math.sin(dLat/2)
 
 +
 
-Math.cos(lat1*Math.PI/180)
-
-*
-
+Math.cos(lat1*Math.PI/180)*
 Math.cos(lat2*Math.PI/180)
 
 *
 
-Math.sin(dLon/2)
-
-*
-
+Math.sin(dLon/2)*
 Math.sin(dLon/2);
-
-
 
 
 
 const c=
 
-2*
-
-Math.atan2(
-
+2*Math.atan2(
 Math.sqrt(a),
-
 Math.sqrt(1-a)
-
 );
-
 
 
 
@@ -549,67 +446,70 @@ return R*c;
 
 
 
-
 // ==============================
-// CEK WILAYAH ABSEN
+// CEK WILAYAH
 // ==============================
-
 
 
 function cekWilayahAbsen(lat,lng){
 
 
-
-let hasil="Lokasi tidak dikenal";
-
+let wilayah="Tidak dikenal";
 
 
 DAFTAR_LOKASI.forEach(function(item){
 
 
-
-let jarak = hitungJarak(
+let jarak=hitungJarak(
 
 lat,
-
 lng,
-
 item.lat,
-
 item.lng
 
 );
 
 
 
-
-
 if(jarak <= item.radius){
 
-
-hasil=item.nama;
-
+wilayah=item.nama;
 
 }
-
 
 
 });
 
 
 
-return hasil;
-
+return wilayah;
 
 
 }
 
+
+
+
+
 // ==============================
-// AKTIFKAN KAMERA ABSEN
+// AKTIFKAN KAMERA
 // ==============================
 
 
 function bukaKameraDepan(){
+
+
+
+if(!navigator.mediaDevices){
+
+alert(
+"Kamera tidak didukung browser"
+);
+
+return;
+
+}
+
 
 
 const video=document.getElementById("kamera");
@@ -663,8 +563,8 @@ document.getElementById("hasil").innerHTML=
 "✅ Kamera absensi aktif";
 
 
-
 })
+
 
 
 .catch(function(error){
@@ -672,7 +572,9 @@ document.getElementById("hasil").innerHTML=
 
 alert(
 
-"Kamera gagal : "+error.message
+"Kamera gagal : "
+
++error.message
 
 );
 
@@ -680,9 +582,56 @@ alert(
 });
 
 
+}
+
+
+
+
+
+// ==============================
+// KOMPRES FOTO MAX ±500KB
+// ==============================
+
+
+function kompresFoto(canvas){
+
+
+let kualitas=0.7;
+
+
+let foto=canvas.toDataURL(
+
+"image/jpeg",
+
+kualitas
+
+);
+
+
+
+while(foto.length > 700000 && kualitas>0.3){
+
+
+kualitas-=0.1;
+
+
+foto=canvas.toDataURL(
+
+"image/jpeg",
+
+kualitas
+
+);
+
 
 }
 
+
+
+return foto;
+
+
+}
 
 
 
@@ -693,9 +642,7 @@ alert(
 // ==============================
 
 
-
 function ambilFotoAbsen(){
-
 
 
 let video=document.getElementById("kamera");
@@ -705,7 +652,9 @@ let video=document.getElementById("kamera");
 if(video.videoWidth==0){
 
 
-alert("Kamera belum siap");
+alert(
+"Kamera belum siap"
+);
 
 
 return "";
@@ -718,10 +667,9 @@ let canvas=document.getElementById("canvas");
 
 
 
-canvas.width=video.videoWidth;
+canvas.width=640;
 
-canvas.height=video.videoHeight;
-
+canvas.height=480;
 
 
 
@@ -737,17 +685,17 @@ video,
 
 0,
 
-canvas.width,
+640,
 
-canvas.height
+480
 
 );
 
 
 
 
-// WATERMARK
 
+// WATERMARK
 
 
 ctx.fillStyle="rgba(0,0,0,0.6)";
@@ -757,21 +705,20 @@ ctx.fillRect(
 
 0,
 
-canvas.height-120,
+350,
 
-canvas.width,
+640,
 
-120
+130
 
 );
-
 
 
 
 ctx.fillStyle="white";
 
 
-ctx.font="22px Arial";
+ctx.font="20px Arial";
 
 
 
@@ -783,18 +730,15 @@ let waktu=new Date();
 
 
 
-
-
 ctx.fillText(
 
 "UPT PUSKESMAS LONG MESANGAT",
 
 20,
 
-canvas.height-90
+380
 
 );
-
 
 
 
@@ -804,10 +748,9 @@ ctx.fillText(
 
 20,
 
-canvas.height-60
+410
 
 );
-
 
 
 
@@ -819,10 +762,9 @@ waktu.toLocaleDateString("id-ID"),
 
 20,
 
-canvas.height-35
+440
 
 );
-
 
 
 
@@ -834,7 +776,7 @@ waktu.toLocaleTimeString("id-ID"),
 
 20,
 
-canvas.height-10
+470
 
 );
 
@@ -842,70 +784,45 @@ canvas.height-10
 
 
 
-return canvas.toDataURL(
-
-"image/jpeg",
-
-0.5
-
-);
+return kompresFoto(canvas);
 
 
 
 }
-
-
-
-
-
-
-
 
 // ==============================
 // ABSEN MASUK
 // ==============================
 
 
-
 function absenMasuk(){
 
 
-
 let nama=document.getElementById("nama")
-
 .value.trim();
-
 
 
 
 if(nama==""){
 
-
-alert("Isi nama terlebih dahulu");
-
+alert(
+"Isi nama terlebih dahulu"
+);
 
 return;
-
 
 }
 
 
 
-
 let mode=document.getElementById("modeAbsen")
-
 .value;
-
-
 
 
 
 document.getElementById("hasil").innerHTML=
 
 "Mengambil lokasi...";
-
-
-
 
 
 
@@ -925,9 +842,6 @@ longitude=pos.coords.longitude;
 
 
 
-
-
-
 let wilayah=cekWilayahAbsen(
 
 latitude,
@@ -939,19 +853,34 @@ longitude
 
 
 
+let maps=
+
+"https://maps.google.com/?q="
++
+latitude
++
+","
++
+longitude;
+
 
 
 
 document.getElementById("lokasi").innerHTML=
 
-"Latitude : "+latitude+
+"Latitude : "
++
+latitude
 
-"<br>Longitude : "+longitude+
++
+"<br>Longitude : "
++
+longitude
 
-"<br>Lokasi : "+wilayah;
-
-
-
++
+"<br>Wilayah : "
++
+wilayah;
 
 
 
@@ -960,16 +889,11 @@ let foto=ambilFotoAbsen();
 
 
 
-
-
 if(foto==""){
-
 
 return;
 
-
 }
-
 
 
 
@@ -978,7 +902,6 @@ return;
 document.getElementById("hasil").innerHTML=
 
 "Mengirim data...";
-
 
 
 
@@ -1030,7 +953,10 @@ latitude:latitude,
 longitude:longitude,
 
 
-lokasiAbsen:wilayah,
+maps:maps,
+
+
+wilayahAbsen:wilayah,
 
 
 foto:foto
@@ -1048,19 +974,14 @@ foto:foto
 
 
 
-
 .then(function(res){
 
-
 return res.text();
-
 
 })
 
 
-
 .then(function(data){
-
 
 
 document.getElementById("hasil").innerHTML=data;
@@ -1073,13 +994,15 @@ document.getElementById("hasil").innerHTML=data;
 .catch(function(error){
 
 
-
 document.getElementById("hasil").innerHTML=
 
-"Error : "+error;
+"Error : "
++
+error;
 
 
 });
+
 
 
 
@@ -1092,7 +1015,9 @@ document.getElementById("hasil").innerHTML=
 function(){
 
 
-alert("GPS tidak aktif");
+alert(
+"GPS tidak aktif"
+);
 
 
 },
@@ -1104,13 +1029,12 @@ alert("GPS tidak aktif");
 
 enableHighAccuracy:true,
 
-timeout:10000,
+timeout:15000,
 
 maximumAge:0
 
 
 }
-
 
 
 
@@ -1120,20 +1044,53 @@ maximumAge:0
 
 }
 
+
+
+
+
+
+
+
 // ==============================
-// MENU IZIN
+// BUKA MENU IZIN
 // ==============================
 
 
 function bukaIzin(){
 
 
-document.getElementById("formIzin")
 
-.style.display="block";
+let form=
+
+document.getElementById("formIzin");
+
+
+
+if(form.style.display=="none"
+||
+form.style.display==""){
+
+
+form.style.display="block";
 
 
 }
+
+else{
+
+
+form.style.display="none";
+
+
+}
+
+
+
+}
+
+
+
+
 
 
 
@@ -1147,36 +1104,36 @@ function kirimIzin(){
 
 
 
-let nama=document.getElementById("nama")
+let nama=
 
+document.getElementById("nama")
 .value.trim();
 
 
 
+let jenis=
 
-let jenis=document.getElementById("jenisIzin")
-
+document.getElementById("jenisIzin")
 .value;
 
 
 
+let keterangan=
 
-let ket=document.getElementById("keteranganIzin")
-
+document.getElementById("keteranganIzin")
 .value;
-
-
 
 
 
 if(nama==""){
 
 
-alert("Isi nama terlebih dahulu");
+alert(
+"Isi nama terlebih dahulu"
+);
 
 
 return;
-
 
 }
 
@@ -1187,7 +1144,6 @@ return;
 document.getElementById("hasil").innerHTML=
 
 "Mengirim izin...";
-
 
 
 
@@ -1218,7 +1174,11 @@ status:"IZIN",
 
 keterangan:
 
-jenis+" "+ket
+jenis
++
+" - "
++
+keterangan
 
 
 
@@ -1233,12 +1193,9 @@ jenis+" "+ket
 
 
 
-
 .then(function(res){
 
-
 return res.text();
-
 
 })
 
@@ -1257,39 +1214,33 @@ document.getElementById("hasil").innerHTML=data;
 .catch(function(error){
 
 
-
 document.getElementById("hasil").innerHTML=
 
-"Error : "+error;
+"Error : "
++
+error;
 
 
 });
 
 
 
-
 }
 
 
 
 
 
-
-
 // ==============================
-// LAPORAN KERJA
+// BUKA FOTO LAPORAN
 // ==============================
-
 
 
 function bukaKameraLaporan(){
 
 
-
 document.getElementById("fotoLaporan")
-
 .click();
-
 
 
 }
@@ -1298,6 +1249,10 @@ document.getElementById("fotoLaporan")
 
 
 
+
+// ==============================
+// KIRIM LAPORAN KERJA
+// ==============================
 
 
 function kirimLaporan(){
@@ -1307,9 +1262,7 @@ function kirimLaporan(){
 let file=
 
 document.getElementById("fotoLaporan")
-
 .files[0];
-
 
 
 
@@ -1321,15 +1274,10 @@ return;
 
 
 
-
-
 let nama=
 
 document.getElementById("nama")
-
 .value.trim();
-
-
 
 
 
@@ -1337,14 +1285,19 @@ document.getElementById("nama")
 if(nama==""){
 
 
-alert("Isi nama terlebih dahulu");
+alert(
+"Isi nama terlebih dahulu"
+);
 
 
 return;
 
-
 }
 
+
+
+
+let reader=new FileReader();
 
 
 
@@ -1356,27 +1309,16 @@ document.getElementById("hasil").innerHTML=
 
 
 
-
-let reader=new FileReader();
-
-
-
-
-
 reader.onload=function(e){
-
 
 
 let foto=e.target.result;
 
 
 
-
 document.getElementById("hasil").innerHTML=
 
 "Mengirim laporan...";
-
-
 
 
 
@@ -1404,6 +1346,7 @@ nama:nama,
 foto:foto
 
 
+
 })
 
 
@@ -1415,12 +1358,9 @@ foto:foto
 
 
 
-
 .then(function(res){
 
-
 return res.text();
-
 
 })
 
@@ -1439,10 +1379,11 @@ document.getElementById("hasil").innerHTML=data;
 .catch(function(error){
 
 
-
 document.getElementById("hasil").innerHTML=
 
-"Error : "+error;
+"Error : "
++
+error;
 
 
 });
@@ -1459,38 +1400,27 @@ reader.readAsDataURL(file);
 
 
 }
-
-
-
-
-
-
-
-
 // ==============================
 // ABSEN PULANG
 // ==============================
 
 
-
 function pulang(){
-
 
 
 let nama=
 
 document.getElementById("nama")
-
 .value.trim();
-
-
 
 
 
 if(nama==""){
 
 
-alert("Isi nama terlebih dahulu");
+alert(
+"Isi nama terlebih dahulu"
+);
 
 
 return;
@@ -1500,12 +1430,9 @@ return;
 
 
 
-
-
 document.getElementById("hasil").innerHTML=
 
 "Mengirim absen pulang...";
-
 
 
 
@@ -1547,16 +1474,13 @@ status:"PULANG"
 
 .then(function(res){
 
-
 return res.text();
-
 
 })
 
 
 
 .then(function(data){
-
 
 
 document.getElementById("hasil").innerHTML=data;
@@ -1569,10 +1493,11 @@ document.getElementById("hasil").innerHTML=data;
 .catch(function(error){
 
 
-
 document.getElementById("hasil").innerHTML=
 
-"Error : "+error;
+"Error : "
++
+error;
 
 
 });
@@ -1581,3 +1506,79 @@ document.getElementById("hasil").innerHTML=
 
 }
 
+
+
+
+// ==============================
+// STOP KAMERA SAAT KELUAR
+// ==============================
+
+
+function matikanKamera(){
+
+
+
+if(kameraStream){
+
+
+
+kameraStream.getTracks()
+.forEach(function(track){
+
+
+track.stop();
+
+
+});
+
+
+
+kameraStream=null;
+
+
+}
+
+
+}
+
+
+
+
+// ==============================
+// CEK HTTPS UNTUK KAMERA
+// ==============================
+
+
+window.onload=function(){
+
+
+
+if(
+location.protocol!="https:"
+&&
+location.hostname!="localhost"
+){
+
+
+
+document.getElementById("hasil").innerHTML=
+
+"⚠️ Kamera membutuhkan HTTPS";
+
+
+}
+
+
+
+};
+
+
+
+
+</script>
+
+
+</body>
+
+
+</html>
