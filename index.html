@@ -7,7 +7,6 @@
 
 <title>Absensi & Laporan Kerja</title>
 
-
 <style>
 
 body{
@@ -17,19 +16,19 @@ body{
     padding:20px;
 }
 
-
 h2{
     color:#1a73e8;
 }
 
+input,select{
 
-input{
     width:90%;
     padding:12px;
     font-size:16px;
     margin:10px;
     border-radius:8px;
     border:1px solid #ccc;
+
 }
 
 
@@ -94,7 +93,6 @@ video,img{
 
 </style>
 
-
 </head>
 
 
@@ -112,7 +110,22 @@ placeholder="Masukkan Nama">
 <br>
 
 
-<!-- KAMERA ABSENSI -->
+<select id="modeAbsen">
+
+<option value="kantor">
+🏥 Absen di Puskesmas
+</option>
+
+<option value="luar">
+🚑 Tugas Luar / Rujukan
+</option>
+
+</select>
+
+
+
+<br>
+
 
 <video
 id="kamera"
@@ -122,12 +135,10 @@ muted>
 </video>
 
 
-
 <canvas
 id="canvas"
 style="display:none;">
 </canvas>
-
 
 
 <br>
@@ -140,7 +151,6 @@ onclick="bukaKameraDepan()">
 📷 AKTIFKAN KAMERA ABSEN
 
 </button>
-
 
 
 <img 
@@ -161,7 +171,6 @@ onclick="absenMasuk()">
 </button>
 
 
-
 <button
 id="pulangBtn"
 onclick="pulang()">
@@ -171,15 +180,11 @@ onclick="pulang()">
 </button>
 
 
-
 <hr>
-
 
 
 <h3>LAPORAN KERJA</h3>
 
-
-<!-- KAMERA BELAKANG KHUSUS LAPORAN -->
 
 <input
 
@@ -196,7 +201,6 @@ style="display:none"
 onchange="kirimLaporan()">
 
 
-
 <button
 id="laporanBtn"
 onclick="bukaKameraLaporan()">
@@ -206,13 +210,13 @@ onclick="bukaKameraLaporan()">
 </button>
 
 
-
 <p id="lokasi"></p>
 
 <p id="hasil"></p>
+
+
 <script>
-
-
+    
 // ==============================
 // URL GOOGLE APPS SCRIPT
 // ==============================
@@ -232,6 +236,9 @@ const LAT_KANTOR = 0.6364024882517407;
 const LNG_KANTOR = 116.69394079221424;
 
 
+// Radius masih disimpan,
+// tetapi tidak digunakan sementara
+
 const RADIUS = 200;
 
 
@@ -245,11 +252,9 @@ let kameraStream = null;
 
 
 
-
 // ==============================
 // HITUNG JARAK GPS
 // ==============================
-
 
 function hitungJarak(lat1,lon1,lat2,lon2){
 
@@ -265,7 +270,6 @@ Math.PI / 180;
 const dLon =
 (lon2-lon1) *
 Math.PI / 180;
-
 
 
 const a =
@@ -303,9 +307,8 @@ return R*c;
 
 
 
-
 // ==============================
-// KAMERA DEPAN ABSENSI
+// KAMERA DEPAN ABSEN
 // ==============================
 
 
@@ -318,7 +321,6 @@ document.getElementById("kamera");
 
 
 navigator.mediaDevices.getUserMedia({
-
 
 video:{
 
@@ -342,7 +344,6 @@ ideal:480
 audio:false
 
 
-
 })
 
 
@@ -358,36 +359,27 @@ video.srcObject = stream;
 video.play();
 
 
-
 document.getElementById("hasil").innerHTML =
 
 "✅ Kamera absensi aktif";
 
 
-
 })
-
 
 
 .catch(function(error){
 
 
 alert(
-
 "Kamera gagal:\n"+
 error.message
-
 );
 
 
 });
 
 
-
 }
-
-
-
 
 
 
@@ -399,7 +391,6 @@ error.message
 
 
 function ambilFotoAbsen(){
-
 
 
 let video =
@@ -479,6 +470,7 @@ canvas.width,
 
 ctx.fillStyle="white";
 
+
 ctx.font="22px Arial";
 
 
@@ -545,7 +537,6 @@ canvas.height-10
 
 
 
-
 return canvas.toDataURL(
 
 "image/jpeg",
@@ -557,13 +548,7 @@ return canvas.toDataURL(
 
 
 }
-
-
-
-
-
-
-
+    
 // ==============================
 // ABSEN MASUK
 // ==============================
@@ -591,6 +576,13 @@ return;
 
 
 
+let mode =
+
+document.getElementById("modeAbsen")
+.value;
+
+
+
 
 document.getElementById("hasil").innerHTML =
 
@@ -599,8 +591,8 @@ document.getElementById("hasil").innerHTML =
 
 
 
-navigator.geolocation.getCurrentPosition(
 
+navigator.geolocation.getCurrentPosition(
 
 
 function(pos){
@@ -608,11 +600,15 @@ function(pos){
 
 
 latitude =
+
 pos.coords.latitude;
 
 
+
 longitude =
+
 pos.coords.longitude;
+
 
 
 
@@ -628,39 +624,69 @@ longitude;
 
 
 
+// Hitung jarak hanya untuk catatan
 
 let jarak = hitungJarak(
-    latitude,
-    longitude,
-    LAT_KANTOR,
-    LNG_KANTOR
+
+latitude,
+
+longitude,
+
+LAT_KANTOR,
+
+LNG_KANTOR
+
 );
 
-// Pemeriksaan radius dinonaktifkan sementara.
-
-let foto = ambilFotoAbsen();
-
-if(foto==""){
-    return;
-}
 
 
 
+// ==============================
+// PEMERIKSAAN RADIUS DINONAKTIFKAN
+// ==============================
 
 
-
-let foto =
-
-ambilFotoAbsen();
+// Jika ingin aktif kembali,
+// buka komentar kode ini
 
 
+/*
+if(mode=="kantor" && jarak > RADIUS){
 
-if(foto==""){
+document.getElementById("hasil").innerHTML =
+
+"❌ Di luar area kantor";
+
+
+alert(
+
+"Absen ditolak\nJarak Anda "+
+Math.round(jarak)+
+" meter"
+
+);
+
 
 return;
 
 }
+*/
 
+
+
+
+
+let foto = ambilFotoAbsen();
+
+
+
+if(foto==""){
+
+
+return;
+
+
+}
 
 
 
@@ -668,6 +694,7 @@ return;
 document.getElementById("hasil").innerHTML =
 
 "Mengirim data...";
+
 
 
 
@@ -692,10 +719,16 @@ aksi:"masuk",
 nama:nama,
 
 
+mode:mode,
+
+
 latitude:latitude,
 
 
 longitude:longitude,
+
+
+jarak:Math.round(jarak),
 
 
 foto:foto
@@ -710,10 +743,19 @@ foto:foto
 
 
 
-.then(res=>res.text())
+
+.then(function(res){
 
 
-.then(data=>{
+return res.text();
+
+
+})
+
+
+
+
+.then(function(data){
 
 
 document.getElementById("hasil").innerHTML=data;
@@ -723,12 +765,13 @@ document.getElementById("hasil").innerHTML=data;
 
 
 
-.catch(err=>{
+
+.catch(function(error){
 
 
 document.getElementById("hasil").innerHTML=
 
-"Error : "+err;
+"Error : "+error;
 
 
 });
@@ -736,8 +779,8 @@ document.getElementById("hasil").innerHTML=
 
 
 
-
 },
+
 
 
 
@@ -751,12 +794,15 @@ alert("GPS tidak aktif");
 
 
 
+
 {
 
 
 enableHighAccuracy:true,
 
+
 timeout:10000,
+
 
 maximumAge:0
 
@@ -765,15 +811,14 @@ maximumAge:0
 
 
 
-
 );
 
 
 
 }
+
 // ==============================
 // LAPORAN KERJA
-// KAMERA BELAKANG
 // ==============================
 
 
@@ -784,6 +829,7 @@ document.getElementById("fotoLaporan").click();
 
 
 }
+
 
 
 
@@ -843,7 +889,6 @@ document.getElementById("hasil").innerHTML =
 
 
 
-
 let reader = new FileReader();
 
 
@@ -898,11 +943,15 @@ foto:foto
 
 
 
+
 .then(function(res){
+
 
 return res.text();
 
+
 })
+
 
 
 
@@ -913,6 +962,7 @@ document.getElementById("hasil").innerHTML=data;
 
 
 })
+
 
 
 
@@ -928,9 +978,7 @@ document.getElementById("hasil").innerHTML=
 
 
 
-
 };
-
 
 
 
@@ -946,13 +994,13 @@ reader.readAsDataURL(file);
 
 
 
-
 // ==============================
 // ABSEN PULANG
 // ==============================
 
 
 function pulang(){
+
 
 
 let nama =
@@ -973,6 +1021,7 @@ return;
 
 
 }
+
 
 
 
@@ -1007,11 +1056,16 @@ nama:nama
 
 
 
+
+
 .then(function(res){
+
 
 return res.text();
 
+
 })
+
 
 
 
@@ -1022,6 +1076,7 @@ document.getElementById("hasil").innerHTML=data;
 
 
 })
+
 
 
 
@@ -1038,7 +1093,6 @@ document.getElementById("hasil").innerHTML=
 
 
 }
-
 
 
 </script>
