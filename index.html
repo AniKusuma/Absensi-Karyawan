@@ -190,7 +190,7 @@
       <option value="Absen Pulang">🚪 Absen Pulang</option>
     </select>
 
-    <!-- DROPDOWN PILIH KOTA RUJUKAN (Hanya muncul jika Tugas Rujukan dipilih) -->
+    <!-- DROPDOWN PILIH KOTA RUJUKAN -->
     <div id="kotaRujukanContainer">
       <select id="kotaRujukan">
         <option value="">-- Pilih Kota Tujuan Rujukan --</option>
@@ -216,7 +216,7 @@
       <button id="izinBtn" onclick="bukaIzin()">📝 AJUKAN IZIN</button>
     </div>
 
-    <!-- Tahap 2: Tombol Konfirmasi Setelah Foto Terlihat -->
+    <!-- Tahap 2: Tombol Konfirmasi -->
     <div id="areaAksiFoto">
       <button id="kirimAbsenBtn" onclick="prosesKirimAbsen()">✅ KIRIM</button>
       <button id="batalFotoBtn" onclick="ulangFoto()">🔄 ULANGI</button>
@@ -250,17 +250,12 @@
     let longitude = "";
     let tempFotoBase64 = "";
 
-    // 1. KOORDINAT PUSKESMAS UTAMA (SP 2 SEGOY MAKMUR)
     const PUSKESMAS_LAT = 0.636402;
     const PUSKESMAS_LNG = 116.693940;
+    const PUSBAN_SP7_LAT = 0.636402;
+    const PUSBAN_SP7_LNG = 116.693940;
+    const RADIUS_MAKSIMAL = 200;
 
-    // 2. KOORDINAT PUSBAN SP 7
-    const PUSBAN_SP7_LAT = 0.636402; // Sesuaikan dengan koordinat Pusban SP7 Anda
-    const PUSBAN_SP7_LNG = 116.693940; // Sesuaikan dengan koordinat Pusban SP7 Anda
-
-    const RADIUS_MAKSIMAL = 200; // Toleransi 200 Meter
-
-    // Fungsi untuk menampilkan/menyembunyikan pilihan Kota Rujukan
     function cekPilihanRujukan() {
       let mode = document.getElementById("modeAbsen").value;
       let container = document.getElementById("kotaRujukanContainer");
@@ -340,7 +335,6 @@
       ctx.drawImage(video, 0, 0, 640, 480);
       ctx.setTransform(1, 0, 0, 1, 0, 0);
 
-      // Watermark
       ctx.fillStyle = "rgba(0,0,0,0.6)";
       ctx.fillRect(0, 350, 640, 130);
       ctx.fillStyle = "white";
@@ -428,7 +422,6 @@
             let keteranganLokasi = "";
             let modeTerkirim = mode;
 
-            // Logika Penentuan Keterangan Lokasi
             if (mode === "Absen Masuk - Tugas Rujukan") {
               keteranganLokasi = "Rujukan - " + kota;
               modeTerkirim = "Absen Masuk - Tugas Rujukan (" + kota + ")";
@@ -439,7 +432,7 @@
               } else {
                 keteranganLokasi = "Di Luar Pusban";
               }
-            } else { // Absen Masuk Puskesmas
+            } else {
               let jarakPuskesmas = hitungJarak(latitude, longitude, PUSKESMAS_LAT, PUSKESMAS_LNG);
               if (jarakPuskesmas <= RADIUS_MAKSIMAL) {
                 keteranganLokasi = "Puskesmas";
@@ -460,12 +453,16 @@
                 keterangan: modeTerkirim,
                 latitude: latitude,
                 longitude: longitude,
-                wilayahAbsen: keteranganLokasi, // Menghasilkan: "Rujukan - Samarinda", "Puskesmas", "Pusban SP7", dll.
+                wilayahAbsen: keteranganLokasi,
                 maps: maps,
                 fotoMasuk: tempFotoBase64
               });
 
-              selesaiKirim("✅ ABSEN MASUK BERHASIL<br>" + hasil);
+              if (hasil.includes("ERROR")) {
+                setLoading(false, "❌ " + hasil);
+              } else {
+                selesaiKirim("✅ ABSEN MASUK BERHASIL<br>" + hasil);
+              }
             } catch (error) {
               setLoading(false, "❌ Gagal kirim : " + error.message);
             }
@@ -487,7 +484,11 @@
             fotoPulang: tempFotoBase64
           });
 
-          selesaiKirim("✅ ABSEN PULANG BERHASIL<br>" + hasil);
+          if (hasil.includes("ERROR")) {
+            setLoading(false, "❌ " + hasil);
+          } else {
+            selesaiKirim("✅ ABSEN PULANG BERHASIL<br>" + hasil);
+          }
         } catch (error) {
           setLoading(false, "❌ Gagal kirim : " + error.message);
         }
@@ -524,7 +525,11 @@
           keterangan: jenis + " - " + keterangan
         });
 
-        setLoading(false, "✅ IZIN BERHASIL DIKIRIM<br>" + hasil);
+        if (hasil.includes("ERROR")) {
+          setLoading(false, "❌ " + hasil);
+        } else {
+          setLoading(false, "✅ IZIN BERHASIL DIKIRIM<br>" + hasil);
+        }
       } catch (error) {
         setLoading(false, "❌ Gagal kirim : " + error.message);
       }
@@ -569,6 +574,7 @@
       reader.readAsDataURL(file);
     }
 
+    // FUNGSI PERBAIKAN LAPORAN KERJA
     function kirimLaporan() {
       let fileInput = document.getElementById("fotoLaporan");
       let file = fileInput.files[0];
@@ -593,7 +599,12 @@
             foto: foto
           });
 
-          setLoading(false, "✅ LAPORAN BERHASIL DIKIRIM<br>" + hasil);
+          // Pengecekan respons agar tidak salah menampilkan notifikasi
+          if (hasil.includes("ERROR") || hasil.includes("AKSI TIDAK DIKENAL")) {
+            setLoading(false, "❌ Gagal : " + hasil);
+          } else {
+            setLoading(false, "✅ LAPORAN BERHASIL DIKIRIM<br>" + hasil);
+          }
           fileInput.value = "";
         } catch (error) {
           setLoading(false, "❌ Gagal kirim : " + error.message);
