@@ -1029,8 +1029,7 @@ setTimeout(function(){
 
 prosesAbsenMasuk(nama);
 
-
-},3000);
+},5000);
 
 
 
@@ -1239,11 +1238,9 @@ bukaKameraDepan();
 
 setTimeout(function(){
 
-
 prosesAbsenPulang(nama);
 
-
-},3000);
+},5000);
 
 
 
@@ -1272,8 +1269,10 @@ let foto=
 ambilFotoPulang();
 
 
+if(!foto){
 
-if(foto==""){
+document.getElementById("hasil").innerHTML=
+"❌ Foto pulang gagal diambil";
 
 return;
 
