@@ -614,7 +614,7 @@ function kompresFoto(canvas){
 
 
 
-let kualitas=0.7;
+let kualitas=0.5;
 
 
 let foto=canvas.toDataURL(
@@ -701,9 +701,9 @@ let canvas=document.getElementById("canvas");
 
 
 
-canvas.width=640;
+canvas.width=480;
 
-canvas.height=480;
+canvas.height=360;
 
 
 
@@ -1288,16 +1288,15 @@ document.getElementById("hasil").innerHTML=
 
 
 
+
 fetch(
-
 URL_APPS_SCRIPT,
-
 {
-
-
 method:"POST",
-
-
+mode:"no-cors",
+headers:{
+"Content-Type":"application/json"
+},
 body:JSON.stringify({
 
 
