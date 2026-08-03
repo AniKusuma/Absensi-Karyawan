@@ -719,9 +719,9 @@ video,
 
 0,
 
-640,
+480,
 
-480
+360
 
 );
 
@@ -870,9 +870,9 @@ let canvas=document.getElementById("canvas");
 
 
 
-canvas.width=640;
+canvas.width=480;
 
-canvas.height=480;
+canvas.height=360;
 
 
 
@@ -1108,13 +1108,12 @@ document.getElementById("hasil").innerHTML=
 
 
 fetch(
-
 URL_APPS_SCRIPT,
-
 {
-
 method:"POST",
-
+headers:{
+"Content-Type":"application/json"
+},
 body:JSON.stringify({
 
 aksi:"masuk",
