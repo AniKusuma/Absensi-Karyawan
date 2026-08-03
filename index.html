@@ -5,147 +5,203 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Absensi Puskesmas</title>
   <style>
+    /* Background Luar */
     body {
-      font-family: Arial, sans-serif;
-      background: #f5f5f5;
-      text-align: center;
-      padding: 20px;
-    }
-
-    h2 { color: #1a73e8; }
-
-    input, select, textarea {
-      width: 90%;
-      padding: 12px;
-      font-size: 16px;
-      margin: 10px;
-      border-radius: 8px;
-      border: 1px solid #ccc;
+      font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      background: linear-gradient(135deg, #4ea8de 0%, #5390d9 50%, #48bfe3 100%);
+      min-height: 100vh;
+      margin: 0;
+      padding: 15px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
       box-sizing: border-box;
     }
 
+    /* Wadah Utama (Kartu / Card UI) */
+    .app-card {
+      background: #ffffff;
+      width: 100%;
+      max-width: 420px;
+      padding: 25px 20px;
+      border-radius: 20px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+      text-align: center;
+      box-sizing: border-box;
+    }
+
+    h2 {
+      color: #1e3a8a;
+      margin-top: 0;
+      font-size: 22px;
+      font-weight: 700;
+    }
+
+    input, select, textarea {
+      width: 100%;
+      padding: 12px;
+      font-size: 15px;
+      margin: 8px 0;
+      border-radius: 10px;
+      border: 1px solid #d1d5db;
+      background-color: #f9fafb;
+      box-sizing: border-box;
+      outline: none;
+      transition: all 0.3s;
+    }
+
+    input:focus, select:focus, textarea:focus {
+      border-color: #2563eb;
+      background-color: #fff;
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.2);
+    }
+
     button {
-      width: 90%;
+      width: 100%;
       padding: 14px;
-      margin: 8px;
-      font-size: 16px;
+      margin: 8px 0;
+      font-size: 15px;
       border: none;
-      border-radius: 8px;
+      border-radius: 10px;
       color: white;
       cursor: pointer;
       font-weight: bold;
+      transition: transform 0.1s, opacity 0.2s;
+    }
+
+    button:active {
+      transform: scale(0.98);
     }
 
     button:disabled {
-      background: #ccc !important;
+      background: #9ca3af !important;
       cursor: not-allowed;
+      transform: none;
     }
 
-    #ambilFotoBtn { background: #1a73e8; }
-    #kirimAbsenBtn { background: #2e7d32; }
-    #batalFotoBtn { background: #d32f2f; }
-    #izinBtn { background: #8e24aa; }
-    #kirimIzinBtn { background: #7b1fa2; }
-    #laporanBtn { background: #43a047; }
+    #ambilFotoBtn { background: #2563eb; }
+    #kirimAbsenBtn { background: #16a34a; }
+    #batalFotoBtn { background: #dc2626; }
+    #izinBtn { background: #9333ea; }
+    #kirimIzinBtn { background: #7e22ce; }
+    #laporanBtn { background: #0d9488; }
 
-    /* 🪞 EFEK CERMIN: Kamera live dibalik seperti cermin */
+    /* Frame Kamera Live & Preview */
+    video, #previewImg {
+      width: 100%;
+      max-width: 320px;
+      height: 240px;
+      object-fit: cover;
+      border-radius: 14px;
+      border: 3px solid #e5e7eb;
+      margin: 10px 0;
+      box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.05);
+    }
+
     video {
-      width: 300px;
-      height: 230px;
-      object-fit: cover;
-      border-radius: 12px;
-      border: 2px solid #ddd;
-      margin-top: 10px;
-      transform: scaleX(-1);
+      transform: scaleX(-1); /* Cermin */
     }
 
-    /* 🖼️ TAMPILAN PRATINJAU HASIL JEPRET */
     #previewImg {
-      width: 300px;
-      height: 230px;
-      object-fit: cover;
-      border-radius: 12px;
-      border: 3px solid #2e7d32;
-      margin-top: 10px;
+      border-color: #16a34a;
       display: none;
     }
 
     #hasil {
-      font-weight: bold;
-      color: #333;
+      font-weight: 600;
+      font-size: 14px;
+      color: #374151;
       margin-top: 15px;
       word-wrap: break-word;
+      line-height: 1.4;
     }
 
     #formIzin {
       display: none;
-      background: white;
-      padding: 10px;
-      border-radius: 10px;
+      background: #f8fafc;
+      padding: 15px;
+      border-radius: 12px;
       margin-top: 10px;
+      border: 1px solid #e2e8f0;
+    }
+
+    #formIzin h3 {
+      margin-top: 0;
+      color: #475569;
+      font-size: 16px;
     }
 
     #areaAksiFoto {
       display: none;
-      margin-top: 10px;
+    }
+
+    hr {
+      border: none;
+      border-top: 1px solid #e5e7eb;
+      margin: 20px 0;
+    }
+
+    h3.section-title {
+      font-size: 16px;
+      color: #4b5563;
+      margin: 10px 0;
     }
   </style>
 </head>
 
 <body>
 
-  <h2>ABSENSI KARYAWAN</h2>
+  <div class="app-card">
+    <h2>ABSENSI KARYAWAN</h2>
 
-  <input id="nama" placeholder="Masukkan Nama">
-  <br>
+    <input id="nama" placeholder="Masukkan Nama Lengkap">
 
-  <select id="modeAbsen">
-    <option value="Absen Masuk - Puskesmas">🏥 Absen Masuk (Puskesmas)</option>
-    <option value="Absen Masuk - Tugas Rujukan">🚑 Absen Masuk (Tugas Rujukan)</option>
-    <option value="Absen Masuk - Dinas Pusban">🏘️ Absen Masuk (Dinas Pusban)</option>
-    <option value="Absen Pulang">🚪 Absen Pulang</option>
-  </select>
-  <br>
-
-  <!-- Live Kamera -->
-  <video id="kamera" autoplay playsinline muted></video>
-  
-  <!-- Hasil Jepretan Foto (Pratinjau) -->
-  <img id="previewImg" alt="Hasil Foto">
-
-  <canvas id="canvas" style="display:none;"></canvas>
-  <br>
-
-  <!-- Tahap 1: Tombol Ambil Foto -->
-  <div id="tombolUtama">
-    <button id="ambilFotoBtn" onclick="jepretFoto()">📷 AMBIL FOTO</button>
-    <button id="izinBtn" onclick="bukaIzin()">📝 AJUKAN IZIN</button>
-  </div>
-
-  <!-- Tahap 2: Tombol Konfirmasi Setelah Foto Terlihat -->
-  <div id="areaAksiFoto">
-    <button id="kirimAbsenBtn" onclick="prosesKirimAbsen()">✅ KIRIM</button>
-    <button id="batalFotoBtn" onclick="ulangFoto()">🔄 ULANGI</button>
-  </div>
-
-  <div id="formIzin">
-    <h3>FORM IZIN</h3>
-    <select id="jenisIzin">
-      <option value="Sakit">Sakit</option>
-      <option value="Keperluan Keluarga">Keperluan Keluarga</option>
-      <option value="Lainnya">Lainnya</option>
+    <select id="modeAbsen">
+      <option value="Absen Masuk - Puskesmas">🏥 Absen Masuk (Puskesmas)</option>
+      <option value="Absen Masuk - Tugas Rujukan">🚑 Absen Masuk (Tugas Rujukan)</option>
+      <option value="Absen Masuk - Dinas Pusban">🏘️ Absen Masuk (Dinas Pusban)</option>
+      <option value="Absen Pulang">🚪 Absen Pulang</option>
     </select>
-    <textarea id="keteranganIzin" placeholder="Keterangan izin"></textarea>
-    <button id="kirimIzinBtn" onclick="kirimIzin()">KIRIM IZIN</button>
+
+    <!-- Live Kamera -->
+    <video id="kamera" autoplay playsinline muted></video>
+    
+    <!-- Hasil Jepretan Foto (Pratinjau) -->
+    <img id="previewImg" alt="Hasil Foto">
+
+    <canvas id="canvas" style="display:none;"></canvas>
+
+    <!-- Tahap 1: Tombol Ambil Foto -->
+    <div id="tombolUtama">
+      <button id="ambilFotoBtn" onclick="jepretFoto()">📷 AMBIL FOTO</button>
+      <button id="izinBtn" onclick="bukaIzin()">📝 AJUKAN IZIN</button>
+    </div>
+
+    <!-- Tahap 2: Tombol Konfirmasi Setelah Foto Terlihat -->
+    <div id="areaAksiFoto">
+      <button id="kirimAbsenBtn" onclick="prosesKirimAbsen()">✅ KIRIM</button>
+      <button id="batalFotoBtn" onclick="ulangFoto()">🔄 ULANGI</button>
+    </div>
+
+    <div id="formIzin">
+      <h3>FORM IZIN</h3>
+      <select id="jenisIzin">
+        <option value="Sakit">Sakit</option>
+        <option value="Keperluan Keluarga">Keperluan Keluarga</option>
+        <option value="Lainnya">Lainnya</option>
+      </select>
+      <textarea id="keteranganIzin" placeholder="Keterangan izin..."></textarea>
+      <button id="kirimIzinBtn" onclick="kirimIzin()">KIRIM IZIN</button>
+    </div>
+
+    <hr>
+
+    <h3 class="section-title">LAPORAN KERJA</h3>
+    <input type="file" id="fotoLaporan" accept="image/*" capture="environment" style="display:none" onchange="kirimLaporan()">
+    <button id="laporanBtn" onclick="bukaKameraLaporan()">📷 FOTO LAPORAN KERJA</button>
+
+    <p id="hasil"></p>
   </div>
-
-  <hr>
-
-  <h3>LAPORAN KERJA</h3>
-  <input type="file" id="fotoLaporan" accept="image/*" capture="environment" style="display:none" onchange="kirimLaporan()">
-  <button id="laporanBtn" onclick="bukaKameraLaporan()">📷 FOTO LAPORAN KERJA</button>
-
-  <p id="hasil"></p>
 
   <script>
     const URL_APPS_SCRIPT = "https://script.google.com/macros/s/AKfycbwHh4nxokmx_hSyLPMJg9GQYjDXuDFUA5Z6GfGN-vSglje5f2mgeBGEqQFyOsk4O_zv/exec";
@@ -237,7 +293,6 @@
       canvas.height = 480;
       let ctx = canvas.getContext("2d");
 
-      // Dibalik horizontal agar hasil foto & tulisan watermark normal (tidak cermin)
       ctx.translate(640, 0);
       ctx.scale(-1, 1);
       ctx.drawImage(video, 0, 0, 640, 480);
@@ -261,7 +316,6 @@
       return kompresFoto(canvas);
     }
 
-    // 📸 1. TAHAP JEPRET FOTO & TAMPILKAN HASIL
     async function jepretFoto() {
       let nama = document.getElementById("nama").value.trim();
       if (nama === "") {
@@ -282,36 +336,31 @@
         return;
       }
 
-      // Sembunyikan video live, Munculkan Gambar Pratinjau
       document.getElementById("kamera").style.display = "none";
       const preview = document.getElementById("previewImg");
       preview.src = tempFotoBase64;
       preview.style.display = "inline-block";
 
-      // Tukar Tombol Aksi
       document.getElementById("tombolUtama").style.display = "none";
       document.getElementById("areaAksiFoto").style.display = "block";
 
-      document.getElementById("hasil").innerHTML = "🔍 Silakan periksa hasil foto di atas.<br>Klik <b>KIRIM</b> jika sudah pas, atau <b>ULANGI</b> untuk foto ulang.";
+      document.getElementById("hasil").innerHTML = "🔍 Periksa hasil foto.<br>Klik <b>KIRIM</b> jika sudah pas, atau <b>ULANGI</b> untuk foto ulang.";
     }
 
-    // 🔄 2. TAHAP FOTO ULANG (JIKA MAU DIULANGI)
     function ulangFoto() {
       document.getElementById("previewImg").style.display = "none";
       document.getElementById("kamera").style.display = "inline-block";
       document.getElementById("tombolUtama").style.display = "block";
       document.getElementById("areaAksiFoto").style.display = "none";
       tempFotoBase64 = "";
-      document.getElementById("hasil").innerHTML = "📸 Silakan atur posisi wajah kamu kembali, lalu tekan <b>AMBIL FOTO</b>.";
+      document.getElementById("hasil").innerHTML = "📸 Silakan atur posisi wajah, lalu klik <b>AMBIL FOTO</b>.";
     }
 
-    // 🚀 3. TAHAP KIRIM DATA
     async function prosesKirimAbsen() {
       let nama = document.getElementById("nama").value.trim();
       let mode = document.getElementById("modeAbsen").value;
 
       if (mode !== "Absen Pulang") {
-        // PERINTAH ABSEN MASUK
         setLoading(true, "Mengambil posisi GPS...");
 
         navigator.geolocation.getCurrentPosition(
@@ -349,7 +398,6 @@
         );
 
       } else {
-        // PERINTAH ABSEN PULANG
         setLoading(true, "Mengirim absen pulang...");
 
         try {
