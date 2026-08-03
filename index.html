@@ -629,45 +629,19 @@ longitude;
 
 
 
-let jarak =
-
-hitungJarak(
-
-latitude,
-
-longitude,
-
-LAT_KANTOR,
-
-LNG_KANTOR
-
+let jarak = hitungJarak(
+    latitude,
+    longitude,
+    LAT_KANTOR,
+    LNG_KANTOR
 );
 
+// Pemeriksaan radius dinonaktifkan sementara.
 
+let foto = ambilFotoAbsen();
 
-
-
-
-if(jarak > RADIUS){
-
-
-document.getElementById("hasil").innerHTML =
-
-"❌ Di luar area kantor";
-
-
-alert(
-
-"Absen ditolak\nJarak Anda "+
-Math.round(jarak)+
-" meter"
-
-);
-
-
-return;
-
-
+if(foto==""){
+    return;
 }
 
 
