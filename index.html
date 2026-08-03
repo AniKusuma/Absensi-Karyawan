@@ -195,17 +195,6 @@ style="display:none;">
 <br>
 
 
-
-<button
-id="kameraBtn"
-onclick="bukaKameraDepan()">
-
-📷 AKTIFKAN KAMERA
-
-</button>
-
-
-
 <button
 id="masukBtn"
 onclick="absenMasuk()">
@@ -547,7 +536,9 @@ navigator.mediaDevices.getUserMedia({
 video:{
 
 
-facingMode:"user",
+facingMode:{
+ideal:"user"
+},
 
 
 width:{
@@ -1013,148 +1004,107 @@ return kompresFoto(canvas);
 function absenMasuk(){
 
 
-
 let nama=document.getElementById("nama")
 .value.trim();
 
 
-
 if(nama==""){
 
-
-alert(
-"Isi nama terlebih dahulu"
-);
-
+alert("Isi nama terlebih dahulu");
 
 return;
+
+}
+
+
+// nyalakan kamera otomatis
+
+if(!kameraStream){
+
+
+bukaKameraDepan();
+
+
+setTimeout(function(){
+
+prosesAbsenMasuk(nama);
+
+
+},3000);
+
+
+
+}
+else{
+
+
+prosesAbsenMasuk(nama);
 
 
 }
 
 
 
-let keterangan=document.getElementById("modeAbsen")
-.value;
+}
 
+
+
+function prosesAbsenMasuk(nama){
 
 
 document.getElementById("hasil").innerHTML=
-
 "Mengambil lokasi...";
-
-
 
 
 
 navigator.geolocation.getCurrentPosition(
 
 
-
 function(pos){
 
 
-
 latitude=pos.coords.latitude;
-
 
 longitude=pos.coords.longitude;
 
 
 
-
-
-let wilayah=cekWilayahAbsen(
-
+let wilayah=
+cekWilayahAbsen(
 latitude,
-
 longitude
-
 );
-
-
 
 
 
 let maps=
 
 "https://maps.google.com/?q="
-
 +
-
 latitude
-
 +
-
 ","
-
 +
-
 longitude;
 
 
 
-
-
-
-
-document.getElementById("lokasi").innerHTML=
-
-"Latitude : "
-
-+
-
-latitude
-
-+
-
-"<br>Longitude : "
-
-+
-
-longitude
-
-+
-
-"<br>Wilayah : "
-
-+
-
-wilayah;
-
-
-
-
-
-
-
-
-let foto=ambilFotoAbsen();
-
+let foto=
+ambilFotoAbsen();
 
 
 
 if(foto==""){
 
-
 return;
-
 
 }
 
 
 
 
-
-
 document.getElementById("hasil").innerHTML=
-
 "Mengirim absen masuk...";
-
-
-
-
-
 
 
 
@@ -1164,130 +1114,81 @@ URL_APPS_SCRIPT,
 
 {
 
-
 method:"POST",
-
 
 body:JSON.stringify({
 
-
-
 aksi:"masuk",
-
 
 nama:nama,
 
-
 status:"HADIR",
 
-
-keterangan:keterangan,
-
+keterangan:
+document.getElementById("modeAbsen").value,
 
 latitude:latitude,
 
-
 longitude:longitude,
-
 
 wilayahAbsen:wilayah,
 
-
 maps:maps,
-
 
 fotoMasuk:foto
 
 
-
 })
 
-
 }
-
 
 
 )
 
 
-
 .then(function(res){
-
 
 return res.text();
 
-
 })
-
 
 
 .then(function(data){
 
-
-
 document.getElementById("hasil").innerHTML=data;
-
 
 })
 
 
-
 .catch(function(error){
 
-
-
 document.getElementById("hasil").innerHTML=
-
-"Error : "
-
-+
-
-error;
-
+"Error : "+error;
 
 });
 
 
 
-
-
-
-
 },
-
 
 
 function(){
 
-
-
-alert(
-
-"GPS tidak aktif"
-
-);
-
-
+alert("GPS tidak aktif");
 
 },
 
 
-
 {
-
 
 enableHighAccuracy:true,
 
-
 timeout:15000,
-
 
 maximumAge:0
 
 
-
 }
-
 
 
 );
@@ -1310,24 +1211,52 @@ maximumAge:0
 function absenPulang(){
 
 
-
 let nama=document.getElementById("nama")
 .value.trim();
 
 
 
-
 if(nama==""){
 
-
 alert(
-
 "Isi nama terlebih dahulu"
-
 );
 
-
 return;
+
+}
+
+
+
+// otomatis hidupkan kamera
+
+if(!kameraStream){
+
+
+bukaKameraDepan();
+
+
+
+setTimeout(function(){
+
+
+prosesAbsenPulang(nama);
+
+
+},3000);
+
+
+
+}
+
+else{
+
+
+prosesAbsenPulang(nama);
+
+
+}
+
 
 
 }
@@ -1335,36 +1264,26 @@ return;
 
 
 
+function prosesAbsenPulang(nama){
 
 
-let foto=ambilFotoPulang();
 
+let foto=
+ambilFotoPulang();
 
 
 
 if(foto==""){
 
-
 return;
-
 
 }
 
 
 
 
-
-
-let waktu=new Date();
-
-
-
-
 document.getElementById("hasil").innerHTML=
-
 "Mengirim absen pulang...";
-
-
 
 
 
@@ -1383,18 +1302,13 @@ method:"POST",
 body:JSON.stringify({
 
 
-
 aksi:"pulang",
-
 
 nama:nama,
 
-
 status:"PULANG",
 
-
 fotoPulang:foto
-
 
 
 })
@@ -1402,44 +1316,29 @@ fotoPulang:foto
 
 }
 
-
-
 )
 
 
 
 .then(function(res){
 
-
 return res.text();
 
-
 })
-
 
 
 .then(function(data){
 
-
-
 document.getElementById("hasil").innerHTML=data;
 
-
 })
-
 
 
 .catch(function(error){
 
 
-
 document.getElementById("hasil").innerHTML=
-
-"Error : "
-
-+
-
-error;
+"Error : "+error;
 
 
 });
