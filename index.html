@@ -56,6 +56,17 @@
       box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.2);
     }
 
+    /* Styling khusus dropdown kota agar menonjol saat muncul */
+    #kotaRujukanContainer {
+      display: none;
+      animation: fadeIn 0.3s ease-in-out;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(-5px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
     button {
       width: 100%;
       padding: 14px;
@@ -169,15 +180,27 @@
       <option value="Siti Kholifah">Siti Kholifah</option>
       <option value="Sugeng Islamuddin">Sugeng Islamuddin</option>
       <option value="Yeni Berria">Yeni Berria</option>
-      <!-- Tambahkan nama karyawan lainnya di sini -->
     </select>
 
-    <select id="modeAbsen">
+    <!-- DROPDOWN MODE ABSEN -->
+    <select id="modeAbsen" onchange="cekPilihanRujukan()">
       <option value="Absen Masuk - Puskesmas">🏥 Absen Masuk (Puskesmas)</option>
       <option value="Absen Masuk - Tugas Rujukan">🚑 Absen Masuk (Tugas Rujukan)</option>
       <option value="Absen Masuk - Dinas Pusban">🏘️ Absen Masuk (Dinas Pusban)</option>
       <option value="Absen Pulang">🚪 Absen Pulang</option>
     </select>
+
+    <!-- DROPDOWN PILIH KOTA RUJUKAN (Hanya muncul jika Tugas Rujukan dipilih) -->
+    <div id="kotaRujukanContainer">
+      <select id="kotaRujukan">
+        <option value="">-- Pilih Kota Tujuan Rujukan --</option>
+        <option value="Samarinda">📍 Samarinda</option>
+        <option value="Sangatta">📍 Sangatta</option>
+        <option value="Bontang">📍 Bontang</option>
+        <option value="Balikpapan">📍 Balikpapan</option>
+        <option value="Lainnya">📍 Kota Lainnya</option>
+      </select>
+    </div>
 
     <!-- Live Kamera -->
     <video id="kamera" autoplay playsinline muted></video>
@@ -227,13 +250,26 @@
     let longitude = "";
     let tempFotoBase64 = "";
 
-    const DAFTAR_LOKASI = [
-      { nama: "Puskesmas Long Mesangat", lat: 0.636402, lng: 116.693940, radius: 5000 },
-      { nama: "Samarinda", lat: -0.5022, lng: 117.1536, radius: 30000 },
-      { nama: "Sangatta", lat: 0.4948, lng: 117.1436, radius: 30000 },
-      { nama: "Tenggarong", lat: -0.4267, lng: 116.9872, radius: 30000 },
-      { nama: "Muara Bengkal", lat: 0.1040, lng: 116.9000, radius: 30000 }
-    ];
+    // 1. KOORDINAT PUSKESMAS UTAMA (SP 2 SEGOY MAKMUR)
+    const PUSKESMAS_LAT = 0.636402;
+    const PUSKESMAS_LNG = 116.693940;
+
+    // 2. KOORDINAT PUSBAN SP 7
+    const PUSBAN_SP7_LAT = 0.636402; // Sesuaikan dengan koordinat Pusban SP7 Anda
+    const PUSBAN_SP7_LNG = 116.693940; // Sesuaikan dengan koordinat Pusban SP7 Anda
+
+    const RADIUS_MAKSIMAL = 200; // Toleransi 200 Meter
+
+    // Fungsi untuk menampilkan/menyembunyikan pilihan Kota Rujukan
+    function cekPilihanRujukan() {
+      let mode = document.getElementById("modeAbsen").value;
+      let container = document.getElementById("kotaRujukanContainer");
+      if (mode === "Absen Masuk - Tugas Rujukan") {
+        container.style.display = "block";
+      } else {
+        container.style.display = "none";
+      }
+    }
 
     function setLoading(isProcessing, pesan) {
       const tombols = document.querySelectorAll("button");
@@ -260,16 +296,6 @@
         Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
         Math.sin(dLon / 2) * Math.sin(dLon / 2);
       return R * (2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a)));
-    }
-
-    function cekWilayahAbsen(lat, lng) {
-      let wilayah = "Tidak dikenal";
-      DAFTAR_LOKASI.forEach(item => {
-        if (hitungJarak(lat, lng, item.lat, item.lng) <= item.radius) {
-          wilayah = item.nama;
-        }
-      });
-      return wilayah;
     }
 
     function bukaKameraDepan() {
@@ -322,11 +348,17 @@
 
       let nama = document.getElementById("nama").value.trim();
       let mode = document.getElementById("modeAbsen").value;
+      let kota = document.getElementById("kotaRujukan").value;
+      let statusText = mode;
+      if (mode === "Absen Masuk - Tugas Rujukan" && kota) {
+        statusText += " (" + kota + ")";
+      }
+
       let waktu = new Date();
 
       ctx.fillText("UPT PUSKESMAS LONG MESANGAT", 20, 380);
       ctx.fillText("Nama : " + nama, 20, 410);
-      ctx.fillText("Status: " + mode, 20, 440);
+      ctx.fillText("Status: " + statusText, 20, 440);
       ctx.fillText("Jam  : " + waktu.toLocaleTimeString("id-ID"), 20, 470);
 
       return kompresFoto(canvas);
@@ -334,8 +366,16 @@
 
     async function jepretFoto() {
       let nama = document.getElementById("nama").value.trim();
+      let mode = document.getElementById("modeAbsen").value;
+      let kota = document.getElementById("kotaRujukan").value;
+
       if (nama === "") {
         alert("Pilih nama karyawan terlebih dahulu");
+        return;
+      }
+
+      if (mode === "Absen Masuk - Tugas Rujukan" && kota === "") {
+        alert("Pilih Kota Tujuan Rujukan terlebih dahulu");
         return;
       }
 
@@ -375,6 +415,7 @@
     async function prosesKirimAbsen() {
       let nama = document.getElementById("nama").value.trim();
       let mode = document.getElementById("modeAbsen").value;
+      let kota = document.getElementById("kotaRujukan").value;
 
       if (mode !== "Absen Pulang") {
         setLoading(true, "Mengambil posisi GPS...");
@@ -384,7 +425,29 @@
             latitude = pos.coords.latitude;
             longitude = pos.coords.longitude;
 
-            let wilayah = cekWilayahAbsen(latitude, longitude);
+            let keteranganLokasi = "";
+            let modeTerkirim = mode;
+
+            // Logika Penentuan Keterangan Lokasi
+            if (mode === "Absen Masuk - Tugas Rujukan") {
+              keteranganLokasi = "Rujukan - " + kota;
+              modeTerkirim = "Absen Masuk - Tugas Rujukan (" + kota + ")";
+            } else if (mode === "Absen Masuk - Dinas Pusban") {
+              let jarakPusban = hitungJarak(latitude, longitude, PUSBAN_SP7_LAT, PUSBAN_SP7_LNG);
+              if (jarakPusban <= RADIUS_MAKSIMAL) {
+                keteranganLokasi = "Pusban SP7";
+              } else {
+                keteranganLokasi = "Di Luar Pusban";
+              }
+            } else { // Absen Masuk Puskesmas
+              let jarakPuskesmas = hitungJarak(latitude, longitude, PUSKESMAS_LAT, PUSKESMAS_LNG);
+              if (jarakPuskesmas <= RADIUS_MAKSIMAL) {
+                keteranganLokasi = "Puskesmas";
+              } else {
+                keteranganLokasi = "Di Luar Puskesmas";
+              }
+            }
+
             let maps = "https://maps.google.com/?q=" + latitude + "," + longitude;
 
             setLoading(true, "Mengirim absen masuk...");
@@ -394,10 +457,10 @@
                 aksi: "masuk",
                 nama: nama,
                 status: "HADIR",
-                keterangan: mode,
+                keterangan: modeTerkirim,
                 latitude: latitude,
                 longitude: longitude,
-                wilayahAbsen: wilayah,
+                wilayahAbsen: keteranganLokasi, // Menghasilkan: "Rujukan - Samarinda", "Puskesmas", "Pusban SP7", dll.
                 maps: maps,
                 fotoMasuk: tempFotoBase64
               });
