@@ -47,6 +47,494 @@
     #izinBtn { background: #8e24aa; }
     #kirimIzinBtn { background: #7b1fa2; }
     #laporanBtn { background: #43a047; }
+    #batalFotoBtn { background: #757575; }
+
+    /* 🪞 EFEK CERMIN DI SINI: Kamera depan dibalik seperti cermin */
+    video {
+      width: 300px;
+      height: 230px;
+      object-fit: cover;
+      border-radius: 12px;
+      border: 2px solid #ddd;
+      margin-top: 10px;
+      transform: scaleX(-1);
+    }
+
+    /* 🖼️ TAMPILAN PRATINJAU FOTO HASIL JEPRET */
+    #previewImg {
+      width: 300px;
+      height: 230px;
+      object-fit: cover;
+      border-radius: 12px;
+      border: 2px solid #1a73e8;
+      margin-top: 10px;
+      display: none;
+    }
+
+    #hasil {
+      font-weight: bold;
+      color: #333;
+      margin-top: 15px;
+      word-wrap: break-word;
+    }
+
+    #formIzin {
+      display: none;
+      background: white;
+      padding: 10px;
+      border-radius: 10px;
+      margin-top: 10px;
+    }
+
+    #areaAksiFoto {
+      display: none;
+      margin-top: 10px;
+    }
+  </style>
+</head>
+
+<body>
+
+  <h2>ABSENSI KARYAWAN</h2>
+
+  <input id="nama" placeholder="Masukkan Nama">
+  <br>
+
+  <select id="modeAbsen">
+    <option value="Absen Puskesmas">🏥 Absen Puskesmas</option>
+    <option value="Tugas Rujukan">🚑 Tugas Rujukan</option>
+    <option value="Dinas Pusban">🏘️ Dinas Pusban</option>
+  </select>
+  <br>
+
+  <!-- Live Kamera -->
+  <video id="kamera" autoplay playsinline muted></video>
+  
+  <!-- Element Hasil Foto untuk Pratinjau -->
+  <img id="previewImg" alt="Hasil Foto">
+
+  <canvas id="canvas" style="display:none;"></canvas>
+  <br>
+
+  <!-- Tombol Utama -->
+  <div id="tombolUtama">
+    <button id="masukBtn" onclick="mulaiAbsen('masuk')">📍 ABSEN MASUK</button>
+    <button id="pulangBtn" onclick="mulaiAbsen('pulang')">🚪 ABSEN PULANG</button>
+    <button id="izinBtn" onclick="bukaIzin()">📝 AJUKAN IZIN</button>
+  </div>
+
+  <!-- Tombol Konfirmasi Setelah Foto Diambil -->
+  <div id="areaAksiFoto">
+    <button id="kirimAbsenBtn" style="background:#2e7d32;" onclick="prosesKirimAbsen()">✅ KIRIM ABSEN</button>
+    <button id="batalFotoBtn" onclick="ulangFoto()">🔄 FOTO ULANG</button>
+  </div>
+
+  <div id="formIzin">
+    <h3>FORM IZIN</h3>
+    <select id="jenisIzin">
+      <option value="Sakit">Sakit</option>
+      <option value="Keperluan Keluarga">Keperluan Keluarga</option>
+      <option value="Lainnya">Lainnya</option>
+    </select>
+    <textarea id="keteranganIzin" placeholder="Keterangan izin"></textarea>
+    <button id="kirimIzinBtn" onclick="kirimIzin()">KIRIM IZIN</button>
+  </div>
+
+  <hr>
+
+  <h3>LAPORAN KERJA</h3>
+  <input type="file" id="fotoLaporan" accept="image/*" capture="environment" style="display:none" onchange="kirimLaporan()">
+  <button id="laporanBtn" onclick="bukaKameraLaporan()">📷 FOTO LAPORAN KERJA</button>
+
+  <p id="hasil"></p>
+
+  <script>
+    const URL_APPS_SCRIPT = "https://script.google.com/macros/s/AKfycbwHh4nxokmx_hSyLPMJg9GQYjDXuDFUA5Z6GfGN-vSglje5f2mgeBGEqQFyOsk4O_zv/exec";
+
+    let kameraStream = null;
+    let latitude = "";
+    let longitude = "";
+    let tempFotoBase64 = "";
+    let jenisAbsenAktif = ""; // 'masuk' atau 'pulang'
+
+    const DAFTAR_LOKASI = [
+      { nama: "Puskesmas Long Mesangat", lat: 0.636402, lng: 116.693940, radius: 5000 },
+      { nama: "Samarinda", lat: -0.5022, lng: 117.1536, radius: 30000 },
+      { nama: "Sangatta", lat: 0.4948, lng: 117.1436, radius: 30000 },
+      { nama: "Tenggarong", lat: -0.4267, lng: 116.9872, radius: 30000 },
+      { nama: "Muara Bengkal", lat: 0.1040, lng: 116.9000, radius: 30000 }
+    ];
+
+    function setLoading(isProcessing, pesan) {
+      const tombols = document.querySelectorAll("button");
+      tombols.forEach(btn => btn.disabled = isProcessing);
+      if (pesan) {
+        document.getElementById("hasil").innerHTML = pesan;
+      }
+    }
+
+    function kirimKeServer(data) {
+      return fetch(URL_APPS_SCRIPT, {
+        method: "POST",
+        redirect: "follow",
+        headers: { "Content-Type": "text/plain;charset=utf-8" },
+        body: JSON.stringify(data)
+      }).then(res => res.text());
+    }
+
+    function hitungJarak(lat1, lon1, lat2, lon2) {
+      const R = 6371000;
+      const dLat = (lat2 - lat1) * Math.PI / 180;
+      const dLon = (lon2 - lon1) * Math.PI / 180;
+      const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+        Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+        Math.sin(dLon / 2) * Math.sin(dLon / 2);
+      return R * (2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a)));
+    }
+
+    function cekWilayahAbsen(lat, lng) {
+      let wilayah = "Tidak dikenal";
+      DAFTAR_LOKASI.forEach(item => {
+        if (hitungJarak(lat, lng, item.lat, item.lng) <= item.radius) {
+          wilayah = item.nama;
+        }
+      });
+      return wilayah;
+    }
+
+    function bukaKameraDepan() {
+      const video = document.getElementById("kamera");
+      return navigator.mediaDevices.getUserMedia({
+        video: { facingMode: "user", width: 640, height: 480 },
+        audio: false
+      }).then(stream => {
+        kameraStream = stream;
+        video.srcObject = stream;
+        document.getElementById("hasil").innerHTML = "✅ Kamera aktif";
+        return true;
+      }).catch(error => {
+        document.getElementById("hasil").innerHTML = "❌ Kamera gagal : " + error.message;
+        return false;
+      });
+    }
+
+    function kompresFoto(canvas) {
+      let kualitas = 0.5;
+      let foto = canvas.toDataURL("image/jpeg", kualitas);
+      while (foto.length > 600000 && kualitas > 0.2) {
+        kualitas = parseFloat((kualitas - 0.1).toFixed(1));
+        foto = canvas.toDataURL("image/jpeg", kualitas);
+      }
+      return foto;
+    }
+
+    function ambilFoto(jenisText) {
+      let video = document.getElementById("kamera");
+      if (!video.videoWidth) return "";
+
+      let canvas = document.getElementById("canvas");
+      canvas.width = 640;
+      canvas.height = 480;
+      let ctx = canvas.getContext("2d");
+
+      // 🪞 Dibalik horizontal agar watermark tulisan tidak kebalik
+      ctx.translate(640, 0);
+      ctx.scale(-1, 1);
+      ctx.drawImage(video, 0, 0, 640, 480);
+      ctx.setTransform(1, 0, 0, 1, 0, 0); // Reset transform canvas
+
+      // Watermark
+      ctx.fillStyle = "rgba(0,0,0,0.6)";
+      ctx.fillRect(0, 350, 640, 130);
+      ctx.fillStyle = "white";
+      ctx.font = "20px Arial";
+
+      let nama = document.getElementById("nama").value.trim();
+      let waktu = new Date();
+
+      ctx.fillText("UPT PUSKESMAS LONG MESANGAT", 20, 380);
+      ctx.fillText("Nama : " + nama, 20, 410);
+      ctx.fillText(jenisText, 20, 440);
+      ctx.fillText("Jam : " + waktu.toLocaleTimeString("id-ID"), 20, 470);
+
+      return kompresFoto(canvas);
+    }
+
+    // 📸 PROSES AMBIL FOTO + PREVIEW
+    async function mulaiAbsen(jenis) {
+      let nama = document.getElementById("nama").value.trim();
+      if (nama === "") {
+        alert("Isi nama terlebih dahulu");
+        return;
+      }
+
+      jenisAbsenAktif = jenis;
+      setLoading(true, "Membuka kamera...");
+
+      if (!kameraStream) {
+        let aktif = await bukaKameraDepan();
+        if (!aktif) {
+          setLoading(false);
+          return;
+        }
+        await new Promise(resolve => setTimeout(resolve, 1500));
+      }
+
+      let labelFoto = jenis === "masuk" ? "ABSEN MASUK" : "ABSEN PULANG";
+      tempFotoBase64 = ambilFoto(labelFoto);
+
+      if (!tempFotoBase64) {
+        setLoading(false, "❌ Kamera belum siap");
+        return;
+      }
+
+      // Tampilkan hasil foto di pratinjau & sembunyikan video live
+      document.getElementById("kamera").style.display = "none";
+      const preview = document.getElementById("previewImg");
+      preview.src = tempFotoBase64;
+      preview.style.display = "inline-block";
+
+      // Tukar tampilan tombol
+      document.getElementById("tombolUtama").style.display = "none";
+      document.getElementById("areaAksiFoto").style.display = "block";
+
+      setLoading(false, "🔍 Silakan periksa hasil foto. Klik <b>KIRIM ABSEN</b> jika sudah pas.");
+    }
+
+    // 🔄 RE-TAKE FOTO
+    function ulangFoto() {
+      document.getElementById("previewImg").style.display = "none";
+      document.getElementById("kamera").style.display = "inline-block";
+      document.getElementById("tombolUtama").style.display = "block";
+      document.getElementById("areaAksiFoto").style.display = "none";
+      tempFotoBase64 = "";
+      document.getElementById("hasil").innerHTML = "📸 Silakan atur posisi lalu tekan Absen kembali.";
+    }
+
+    // 🚀 KIRIM KE SERVER
+    async function prosesKirimAbsen() {
+      let nama = document.getElementById("nama").value.trim();
+
+      if (jenisAbsenAktif === "masuk") {
+        setLoading(true, "Mengambil posisi GPS...");
+
+        navigator.geolocation.getCurrentPosition(
+          async function (pos) {
+            latitude = pos.coords.latitude;
+            longitude = pos.coords.longitude;
+
+            let wilayah = cekWilayahAbsen(latitude, longitude);
+            let maps = "https://maps.google.com/?q=" + latitude + "," + longitude;
+
+            setLoading(true, "Mengirim absen masuk...");
+
+            try {
+              let hasil = await kirimKeServer({
+                aksi: "masuk",
+                nama: nama,
+                status: "HADIR",
+                keterangan: document.getElementById("modeAbsen").value,
+                latitude: latitude,
+                longitude: longitude,
+                wilayahAbsen: wilayah,
+                maps: maps,
+                fotoMasuk: tempFotoBase64
+              });
+
+              selesaiKirim("✅ ABSEN MASUK BERHASIL<br>" + hasil);
+            } catch (error) {
+              setLoading(false, "❌ Gagal kirim : " + error.message);
+            }
+          },
+          function () {
+            setLoading(false, "❌ GPS tidak aktif / gagal mendeteksi posisi");
+          },
+          { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
+        );
+
+      } else if (jenisAbsenAktif === "pulang") {
+        setLoading(true, "Mengirim absen pulang...");
+
+        try {
+          let hasil = await kirimKeServer({
+            aksi: "pulang",
+            nama: nama,
+            status: "PULANG",
+            fotoPulang: tempFotoBase64
+          });
+
+          selesaiKirim("✅ ABSEN PULANG BERHASIL<br>" + hasil);
+        } catch (error) {
+          setLoading(false, "❌ Gagal kirim : " + error.message);
+        }
+      }
+    }
+
+    function selesaiKirim(pesan) {
+      setLoading(false, pesan);
+      ulangFoto(); // Reset tampilan ke kondisi awal
+    }
+
+    function bukaIzin() {
+      let form = document.getElementById("formIzin");
+      form.style.display = (form.style.display === "none" || form.style.display === "") ? "block" : "none";
+    }
+
+    async function kirimIzin() {
+      let nama = document.getElementById("nama").value.trim();
+      if (nama === "") {
+        alert("Isi nama terlebih dahulu");
+        return;
+      }
+
+      let jenis = document.getElementById("jenisIzin").value;
+      let keterangan = document.getElementById("keteranganIzin").value;
+
+      setLoading(true, "Mengirim pengajuan izin...");
+
+      try {
+        let hasil = await kirimKeServer({
+          aksi: "izin",
+          nama: nama,
+          status: "IZIN",
+          keterangan: jenis + " - " + keterangan
+        });
+
+        setLoading(false, "✅ IZIN BERHASIL DIKIRIM<br>" + hasil);
+      } catch (error) {
+        setLoading(false, "❌ Gagal kirim : " + error.message);
+      }
+    }
+
+    function bukaKameraLaporan() {
+      document.getElementById("fotoLaporan").click();
+    }
+
+    function kompresFileFoto(file, callback) {
+      let reader = new FileReader();
+      reader.onload = function (e) {
+        let img = new Image();
+        img.onload = function () {
+          let canvas = document.createElement("canvas");
+          let maxWidth = 800;
+          let scale = maxWidth / img.width;
+          if (scale > 1) scale = 1;
+
+          canvas.width = img.width * scale;
+          canvas.height = img.height * scale;
+
+          let ctx = canvas.getContext("2d");
+          ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+          ctx.fillStyle = "rgba(0,0,0,0.6)";
+          ctx.fillRect(0, canvas.height - 90, canvas.width, 90);
+          ctx.fillStyle = "white";
+          ctx.font = "18px Arial";
+
+          let nama = document.getElementById("nama").value.trim();
+          let waktu = new Date();
+
+          ctx.fillText("UPT PUSKESMAS LONG MESANGAT", 10, canvas.height - 60);
+          ctx.fillText("Nama : " + nama, 10, canvas.height - 35);
+          ctx.fillText(waktu.toLocaleString("id-ID"), 10, canvas.height - 10);
+
+          callback(kompresFoto(canvas));
+        };
+        img.src = e.target.result;
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function kirimLaporan() {
+      let fileInput = document.getElementById("fotoLaporan");
+      let file = fileInput.files[0];
+      if (!file) return;
+
+      let nama = document.getElementById("nama").value.trim();
+      if (nama === "") {
+        alert("Isi nama terlebih dahulu");
+        fileInput.value = "";
+        return;
+      }
+
+      setLoading(true, "Mengecilkan foto laporan...");
+
+      kompresFileFoto(file, async function (foto) {
+        setLoading(true, "Mengirim laporan kerja...");
+
+        try {
+          let hasil = await kirimKeServer({
+            aksi: "laporan",
+            nama: nama,
+            foto: foto
+          });
+
+          setLoading(false, "✅ LAPORAN BERHASIL DIKIRIM<br>" + hasil);
+          fileInput.value = "";
+        } catch (error) {
+          setLoading(false, "❌ Gagal kirim : " + error.message);
+          fileInput.value = "";
+        }
+      });
+    }
+
+    window.onload = function () {
+      if (location.protocol !== "https:" && location.hostname !== "localhost") {
+        document.getElementById("hasil").innerHTML = "⚠️ Kamera & GPS membutuhkan protokol HTTPS";
+      }
+    };
+  </script>
+</body>
+
+</html><!DOCTYPE html>
+<html>
+
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Absensi Puskesmas</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f5f5f5;
+      text-align: center;
+      padding: 20px;
+    }
+
+    h2 {
+      color: #1a73e8;
+    }
+
+    input, select, textarea {
+      width: 90%;
+      padding: 12px;
+      font-size: 16px;
+      margin: 10px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      box-sizing: border-box;
+    }
+
+    button {
+      width: 90%;
+      padding: 14px;
+      margin: 8px;
+      font-size: 16px;
+      border: none;
+      border-radius: 8px;
+      color: white;
+      cursor: pointer;
+    }
+
+    button:disabled {
+      background: #ccc !important;
+      cursor: not-allowed;
+    }
+
+    #masukBtn { background: #1a73e8; }
+    #pulangBtn { background: #e53935; }
+    #izinBtn { background: #8e24aa; }
+    #kirimIzinBtn { background: #7b1fa2; }
+    #laporanBtn { background: #43a047; }
 
     video {
       width: 300px;
