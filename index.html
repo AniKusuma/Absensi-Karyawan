@@ -229,16 +229,18 @@
   <div id="tab-masuk" class="tab-content">
     <div class="form-group">
       <label for="status">Status Kehadiran:</label>
-      <select id="status">
+      <select id="status" onchange="cekStatusRujukan()">
         <option value="PUSKESMAS">PUSKESMAS</option>
-        <option value="DINAS">DINAS PUSBAN</option>
-        
+        <option value="DINAS PUSBAN">DINAS PUSBAN</option>
+        <option value="MERUJUK">MERUJUK</option>
       </select>
     </div>
-    <div class="form-group">
-      <label for="wilayahAbsen">Lokasi / Rujukan:</label>
+    
+    <!-- Container Lokasi Rujukan (Otomatis tersembunyi jika bukan MERUJUK) -->
+    <div class="form-group" id="group-rujukan" style="display: none;">
+      <label for="wilayahAbsen">Tujuan Tempat Rujukan:</label>
       <select id="wilayahAbsen">
-        <option value="">-- Pilih Lokasi / Rujukan --</option>
+        <option value="">-- Pilih Tempat Rujukan --</option>
         <option value="Muara Bengkal">Muara Bengkal</option>
         <option value="Samarinda">Samarinda</option>
         <option value="Tenggarong">Tenggarong</option>
@@ -247,6 +249,7 @@
         <option value="Balikpapan">Balikpapan</option>
       </select>
     </div>
+
     <div class="form-group">
       <label for="keterangan-masuk">Keterangan/Catatan:</label>
       <input type="text" id="keterangan-masuk" placeholder="Contoh: Datang tepat waktu">
@@ -294,7 +297,22 @@
   window.onload = function() {
     initKamera("user");
     initGPS();
+    cekStatusRujukan(); // Menyesuaikan tampilan awal saat halaman dimuat
   };
+
+  // Fungsi Otomatisasi Dropdown Rujukan
+  function cekStatusRujukan() {
+    let status = document.getElementById("status").value;
+    let groupRujukan = document.getElementById("group-rujukan");
+    let selectWilayah = document.getElementById("wilayahAbsen");
+
+    if (status === "MERUJUK") {
+      groupRujukan.style.display = "block";
+    } else {
+      groupRujukan.style.display = "none";
+      selectWilayah.value = ""; // Reset pilihan rujukan jika opsi kembali ke PUSKESMAS / DINAS PUSBAN
+    }
+  }
 
   // Switch Tab
   function bukaTab(evt, namaTab) {
@@ -462,21 +480,23 @@
 
   function kirimAbsenMasuk() {
     let nama = document.getElementById("nama").value;
+    let status = document.getElementById("status").value;
     let wilayah = document.getElementById("wilayahAbsen").value;
     let ket = document.getElementById("keterangan-masuk").value;
 
     if (!nama) return alert("Pilih Nama Anda terlebih dahulu!");
+    if (status === "MERUJUK" && !wilayah) return alert("Silakan pilih Tujuan Tempat Rujukan!");
     if (!base64Foto) return alert("Silakan konfirmasi foto Anda terlebih dahulu dengan menekan 'Gunakan Foto Ini'!");
 
     let ketGabungan = ket;
-    if (wilayah) {
-      ketGabungan = ket ? ket + " (" + wilayah + ")" : wilayah;
+    if (status === "MERUJUK" && wilayah) {
+      ketGabungan = ket ? ket + " (Rujukan: " + wilayah + ")" : "Rujukan: " + wilayah;
     }
 
     kirimData({
       aksi: "masuk",
       nama: nama,
-      status: document.getElementById("status").value,
+      status: status,
       fotoMasuk: base64Foto,
       keterangan: ketGabungan,
       latitude: userLocation.latitude,
@@ -531,6 +551,8 @@
     document.getElementById("keterangan-izin").value = "";
     document.getElementById("judul-laporan").value = "";
     document.getElementById("wilayahAbsen").value = "";
+    document.getElementById("status").value = "PUSKESMAS";
+    cekStatusRujukan();
   }
 </script>
 
