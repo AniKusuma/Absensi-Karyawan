@@ -3,27 +3,116 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Sistem Presensi & Laporan Kerja</title>
+  <title>Sistem Presensi & Laporan Kerja - Puskesmas</title>
   <style>
-    * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-    body { background-color: #f4f6f9; margin: 0; padding: 20px; display: flex; justify-content: center; }
-    .card { background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); width: 100%; max-width: 480px; }
+    * { 
+      box-sizing: border-box; 
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+    }
+
+    /* Background Utama Tema Puskesmas / Kesehatan */
+    body { 
+      margin: 0; 
+      padding: 20px 15px; 
+      min-height: 100vh;
+      display: flex; 
+      justify-content: center; 
+      align-items: center;
+      /* Gradien Segar khas Layanan Kesehatan + Pola Medis Halus */
+      background: linear-gradient(135deg, rgba(15, 118, 110, 0.85), rgba(13, 148, 136, 0.85)),
+                  url('https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?auto=format&fit=crop&w=1200&q=80');
+      background-size: cover;
+      background-position: center;
+      background-attachment: fixed;
+    }
+
+    /* Card Utama dengan efek Glassmorphism */
+    .card { 
+      background: rgba(255, 255, 255, 0.96); 
+      padding: 25px; 
+      border-radius: 16px; 
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2); 
+      width: 100%; 
+      max-width: 480px; 
+      backdrop-filter: blur(8px);
+      border: 1px solid rgba(255, 255, 255, 0.4);
+    }
+
+    /* Header Puskesmas */
+    .header-puskesmas {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    .header-puskesmas h2 {
+      margin: 0;
+      color: #0f766e;
+      font-size: 20px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+    }
+    .header-puskesmas p {
+      margin: 4px 0 0 0;
+      color: #64748b;
+      font-size: 13px;
+    }
     
     /* Navigation Tab */
-    .tabs { display: flex; border-bottom: 2px solid #ddd; margin-bottom: 20px; }
-    .tab-btn { flex: 1; padding: 10px; border: none; background: none; cursor: pointer; font-weight: bold; color: #666; font-size: 14px; }
-    .tab-btn.active { color: #007bff; border-bottom: 3px solid #007bff; }
+    .tabs { 
+      display: flex; 
+      border-bottom: 2px solid #e2e8f0; 
+      margin-bottom: 20px; 
+    }
+    .tab-btn { 
+      flex: 1; 
+      padding: 10px 5px; 
+      border: none; 
+      background: none; 
+      cursor: pointer; 
+      font-weight: 600; 
+      color: #64748b; 
+      font-size: 14px; 
+      transition: all 0.2s;
+    }
+    .tab-btn.active { 
+      color: #0f766e; 
+      border-bottom: 3px solid #0f766e; 
+    }
     
     /* Form Style */
     .form-group { margin-bottom: 15px; }
-    label { display: block; font-weight: 600; margin-bottom: 6px; color: #333; font-size: 14px; }
-    input, select, textarea { width: 100%; padding: 10px 12px; border: 1px solid #ccc; border-radius: 8px; font-size: 14px; outline: none; }
-    input:focus, select:focus, textarea:focus { border-color: #007bff; }
+    label { display: block; font-weight: 600; margin-bottom: 6px; color: #334155; font-size: 14px; }
+    input, select, textarea { 
+      width: 100%; 
+      padding: 11px 12px; 
+      border: 1px solid #cbd5e1; 
+      border-radius: 8px; 
+      font-size: 14px; 
+      outline: none; 
+      background-color: #f8fafc;
+      transition: border-color 0.2s;
+    }
+    input:focus, select:focus, textarea:focus { 
+      border-color: #0f766e; 
+      background-color: #fff;
+    }
     textarea { resize: vertical; height: 80px; }
     
     /* Box Kamera */
-    .camera-box { text-align: center; background: #eaeaea; border-radius: 12px; padding: 12px; margin-bottom: 20px; }
-    video, img { width: 100%; height: 220px; border-radius: 8px; object-fit: cover; background: #ddd; }
+    .camera-box { 
+      text-align: center; 
+      background: #f1f5f9; 
+      border-radius: 12px; 
+      padding: 12px; 
+      margin-bottom: 20px; 
+      border: 1px dashed #cbd5e1;
+    }
+    video, img { 
+      width: 100%; 
+      height: 220px; 
+      border-radius: 8px; 
+      object-fit: cover; 
+      background: #e2e8f0; 
+    }
     
     /* Style Efek Cermin Kamera Depan */
     .mirror {
@@ -31,18 +120,63 @@
       -webkit-transform: scaleX(-1);
     }
     
+    /* Container Tombol Aksi Foto */
+    .photo-action-btns {
+      display: flex;
+      gap: 10px;
+      margin-top: 10px;
+    }
+    
     /* Button Style */
-    .btn { width: 100%; padding: 12px; border: none; border-radius: 8px; background: #007bff; color: white; font-size: 15px; font-weight: bold; cursor: pointer; transition: 0.2s; }
+    .btn { 
+      width: 100%; 
+      padding: 12px; 
+      border: none; 
+      border-radius: 8px; 
+      background: #0f766e; 
+      color: white; 
+      font-size: 15px; 
+      font-weight: bold; 
+      cursor: pointer; 
+      transition: 0.2s; 
+      box-shadow: 0 2px 6px rgba(15, 118, 110, 0.2);
+    }
     .btn:hover { opacity: 0.9; }
-    .btn-camera { background: #6c757d; margin-top: 10px; font-size: 16px; }
+    .btn-camera { background: #475569; margin-top: 10px; font-size: 15px; }
+    .btn-retry { background: #d97706; color: white; }
+    .btn-confirm { background: #16a34a; color: white; }
+    
+    /* Status Foto Kunci */
+    .status-foto {
+      margin-top: 8px;
+      font-size: 13px;
+      font-weight: bold;
+      color: #16a34a;
+      display: none;
+    }
     
     /* Loading Indicator */
-    #loading { display: none; text-align: center; font-weight: bold; color: #007bff; margin-top: 15px; padding: 10px; background: #e8f0fe; border-radius: 6px; }
+    #loading { 
+      display: none; 
+      text-align: center; 
+      font-weight: bold; 
+      color: #0f766e; 
+      margin-top: 15px; 
+      padding: 10px; 
+      background: #ccfbf1; 
+      border-radius: 6px; 
+    }
   </style>
 </head>
 <body>
 
 <div class="card">
+  <!-- Header Bertema Puskesmas -->
+  <div class="header-puskesmas">
+    <h2>🏥 PRESENSI PUSKESMAS</h2>
+    <p>Sistem Informasi Pelaporan & Kehadiran Pegawai</p>
+  </div>
+
   <!-- 1. Menu Tab (Atas) -->
   <div class="tabs">
     <button class="tab-btn active" onclick="bukaTab(event, 'tab-masuk')">Masuk</button>
@@ -51,7 +185,7 @@
     <button class="tab-btn" onclick="bukaTab(event, 'tab-laporan')">Laporan</button>
   </div>
 
-  <!-- 2. Input Nama Pegawai (Daftar Nama Terbaru) -->
+  <!-- 2. Input Nama Pegawai -->
   <div class="form-group">
     <label for="nama">Nama Pegawai:</label>
     <select id="nama">
@@ -76,7 +210,17 @@
     <video id="video" autoplay playsinline class="mirror"></video>
     <canvas id="canvas" style="display:none;"></canvas>
     <img id="preview-foto" style="display:none;" alt="Preview Foto">
+    
+    <!-- Tombol Ambil Foto Awal -->
     <button type="button" class="btn btn-camera" id="btn-foto" onclick="ambilFoto()">📸 Ambil Foto</button>
+
+    <!-- Tombol Konfirmasi -->
+    <div id="group-konfirmasi" class="photo-action-btns" style="display:none;">
+      <button type="button" class="btn btn-retry" onclick="fotoUlang()">🔄 Foto Ulang</button>
+      <button type="button" class="btn btn-confirm" onclick="konfirmasiFoto()">✅ Gunakan Foto Ini</button>
+    </div>
+    
+    <div id="status-foto-fix" class="status-foto">✓ Foto Siap Digunakan</div>
   </div>
 
   <!-- 4. KONTEN MASING-MASING TAB -->
@@ -109,8 +253,8 @@
 
   <!-- TAB ABSEN PULANG -->
   <div id="tab-pulang" class="tab-content" style="display:none;">
-    <p style="text-align:center; color:#555; font-size:14px; margin-bottom:15px;">Ambil foto untuk verifikasi presensi pulang harian.</p>
-    <button class="btn" style="background:#dc3545;" onclick="kirimAbsenPulang()">Kirim Absen Pulang</button>
+    <p style="text-align:center; color:#475569; font-size:14px; margin-bottom:15px;">Ambil foto untuk verifikasi presensi pulang harian.</p>
+    <button class="btn" style="background:#dc2626;" onclick="kirimAbsenPulang()">Kirim Absen Pulang</button>
   </div>
 
   <!-- TAB IZIN -->
@@ -119,7 +263,7 @@
       <label for="keterangan-izin">Alasan Izin / Sakit:</label>
       <textarea id="keterangan-izin" placeholder="Tuliskan alasan pengajuan izin secara detail..."></textarea>
     </div>
-    <button class="btn" style="background:#ffc107; color:#333;" onclick="kirimIzin()">Kirim Pengajuan Izin</button>
+    <button class="btn" style="background:#d97706; color:white;" onclick="kirimIzin()">Kirim Pengajuan Izin</button>
   </div>
 
   <!-- TAB LAPORAN KERJA -->
@@ -128,7 +272,7 @@
       <label for="judul-laporan">Judul Laporan Kerja:</label>
       <input type="text" id="judul-laporan" placeholder="Masukkan judul kegiatan/laporan...">
     </div>
-    <button class="btn" style="background:#28a745;" onclick="kirimLaporanKerja()">Kirim Laporan Kerja</button>
+    <button class="btn" style="background:#16a34a;" onclick="kirimLaporanKerja()">Kirim Laporan Kerja</button>
   </div>
 
   <!-- Loading Status -->
@@ -136,15 +280,13 @@
 </div>
 
 <script>
-  // =========================================================================
-  // URL WEB APP DEPLOYMENT GOOGLE APPS SCRIPT ANDA
-  // =========================================================================
   const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwHh4nxokmx_hSyLPMJg9GQYjDXuDFUA5Z6GfGN-vSglje5f2mgeBGEqQFyOsk4O_zv/exec";
 
-  let base64Foto = "";
+  let tempBase64Foto = ""; 
+  let base64Foto = "";     
   let userLocation = { latitude: "", longitude: "", maps: "" };
   let currentStream = null;
-  let modeKameraSaatIni = "user"; // "user" = Depan, "environment" = Belakang
+  let modeKameraSaatIni = "user";
 
   window.onload = function() {
     initKamera("user");
@@ -169,7 +311,6 @@
       matikanKamera();
     } else {
       boxKamera.style.display = "block";
-      // Tab Laporan memakai Kamera Belakang, Masuk & Pulang memakai Kamera Depan
       let targetMode = (namaTab === 'tab-laporan') ? "environment" : "user";
       if (modeKameraSaatIni !== targetMode || !currentStream) {
         initKamera(targetMode);
@@ -194,7 +335,6 @@
     let video = document.getElementById("video");
     let preview = document.getElementById("preview-foto");
 
-    // Hanya aktifkan bercermin saat menggunakan Kamera Depan
     if (mode === "user") {
       video.classList.add("mirror");
       preview.classList.add("mirror");
@@ -217,6 +357,7 @@
       });
   }
 
+  // Ambil Foto & Kompresi Otomatis Maksimal 700 KB
   function ambilFoto() {
     let video = document.getElementById("video");
     let canvas = document.getElementById("canvas");
@@ -226,7 +367,6 @@
     canvas.width = 480;
     canvas.height = 640;
 
-    // Jika kamera depan, balikkan canvas agar hasil gambar tetap bercermin
     if (modeKameraSaatIni === "user") {
       context.translate(canvas.width, 0);
       context.scale(-1, 1);
@@ -234,18 +374,54 @@
 
     context.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-    base64Foto = canvas.toDataURL("image/jpeg", 0.7); // Kompresi 70%
-    preview.src = base64Foto;
+    // Algoritma Kompresi Otomatis Maksimal 700 KB
+    let quality = 0.7;
+    tempBase64Foto = canvas.toDataURL("image/jpeg", quality);
+
+    let sizeInKB = (tempBase64Foto.length * (3 / 4)) / 1024;
+
+    while (sizeInKB > 700 && quality > 0.1) {
+      quality -= 0.1;
+      tempBase64Foto = canvas.toDataURL("image/jpeg", quality);
+      sizeInKB = (tempBase64Foto.length * (3 / 4)) / 1024;
+    }
+
+    preview.src = tempBase64Foto;
+    
     preview.style.display = "block";
     video.style.display = "none";
-    document.getElementById("btn-foto").innerText = "🔄 Ambil Ulang Foto";
+    
+    document.getElementById("btn-foto").style.display = "none";
+    document.getElementById("group-konfirmasi").style.display = "flex";
+    document.getElementById("status-foto-fix").style.display = "none";
   }
 
-  function resetTampilanFoto() {
+  function fotoUlang() {
+    tempBase64Foto = "";
     base64Foto = "";
     document.getElementById("preview-foto").style.display = "none";
     document.getElementById("video").style.display = "block";
-    document.getElementById("btn-foto").innerText = "📸 Ambil Foto";
+    
+    document.getElementById("btn-foto").style.display = "block";
+    document.getElementById("group-konfirmasi").style.display = "none";
+    document.getElementById("status-foto-fix").style.display = "none";
+  }
+
+  function konfirmasiFoto() {
+    base64Foto = tempBase64Foto;
+    document.getElementById("group-konfirmasi").style.display = "none";
+    document.getElementById("status-foto-fix").style.display = "block";
+    alert("Foto berhasil dikonfirmasi! Silakan klik tombol Kirim.");
+  }
+
+  function resetTampilanFoto() {
+    tempBase64Foto = "";
+    base64Foto = "";
+    document.getElementById("preview-foto").style.display = "none";
+    document.getElementById("video").style.display = "block";
+    document.getElementById("btn-foto").style.display = "block";
+    document.getElementById("group-konfirmasi").style.display = "none";
+    document.getElementById("status-foto-fix").style.display = "none";
   }
 
   // Geolocation Handler
@@ -261,7 +437,7 @@
     }
   }
 
-  // Fetch API / Pengiriman Data ke Google Apps Script
+  // Fetch API / Pengiriman Data
   async function kirimData(payload) {
     let loading = document.getElementById("loading");
     loading.style.display = "block";
@@ -281,14 +457,13 @@
     }
   }
 
-  // 1. Absen Masuk
   function kirimAbsenMasuk() {
     let nama = document.getElementById("nama").value;
     let wilayah = document.getElementById("wilayahAbsen").value;
     let ket = document.getElementById("keterangan-masuk").value;
 
     if (!nama) return alert("Pilih Nama Anda terlebih dahulu!");
-    if (!base64Foto) return alert("Ambil foto presensi masuk terlebih dahulu!");
+    if (!base64Foto) return alert("Silakan konfirmasi foto Anda terlebih dahulu dengan menekan 'Gunakan Foto Ini'!");
 
     let ketGabungan = ket;
     if (wilayah) {
@@ -307,11 +482,10 @@
     });
   }
 
-  // 2. Absen Pulang
   function kirimAbsenPulang() {
     let nama = document.getElementById("nama").value;
     if (!nama) return alert("Pilih Nama Anda terlebih dahulu!");
-    if (!base64Foto) return alert("Ambil foto presensi pulang terlebih dahulu!");
+    if (!base64Foto) return alert("Silakan konfirmasi foto Anda terlebih dahulu dengan menekan 'Gunakan Foto Ini'!");
 
     kirimData({
       aksi: "pulang",
@@ -320,7 +494,6 @@
     });
   }
 
-  // 3. Pengajuan Izin
   function kirimIzin() {
     let nama = document.getElementById("nama").value;
     let keterangan = document.getElementById("keterangan-izin").value;
@@ -334,13 +507,12 @@
     });
   }
 
-  // 4. Laporan Kerja
   function kirimLaporanKerja() {
     let nama = document.getElementById("nama").value;
     let judul = document.getElementById("judul-laporan").value;
     if (!nama) return alert("Pilih Nama Anda terlebih dahulu!");
     if (!judul) return alert("Tuliskan Judul Laporan Kerja Anda!");
-    if (!base64Foto) return alert("Ambil foto bukti pekerjaan terlebih dahulu!");
+    if (!base64Foto) return alert("Silakan konfirmasi foto Anda terlebih dahulu dengan menekan 'Gunakan Foto Ini'!");
 
     kirimData({
       aksi: "laporan",
@@ -350,7 +522,6 @@
     });
   }
 
-  // Reset Form
   function resetForm() {
     resetTampilanFoto();
     document.getElementById("keterangan-masuk").value = "";
