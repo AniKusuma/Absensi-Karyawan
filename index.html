@@ -289,14 +289,12 @@
   const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwHh4nxokmx_hSyLPMJg9GQYjDXuDFUA5Z6GfGN-vSglje5f2mgeBGEqQFyOsk4O_zv/exec";
 
   let tempBase64Foto = ""; 
-  let base64Foto = "";     
-  let userLocation = { latitude: "", longitude: "", maps: "" };
+  let base64Foto = "";      
   let currentStream = null;
   let modeKameraSaatIni = "user";
 
   window.onload = function() {
     initKamera("user");
-    initGPS();
     cekStatusRujukan(); // Menyesuaikan tampilan awal saat halaman dimuat
   };
 
@@ -310,7 +308,7 @@
       groupRujukan.style.display = "block";
     } else {
       groupRujukan.style.display = "none";
-      selectWilayah.value = ""; // Reset pilihan rujukan jika opsi kembali ke PUSKESMAS / DINAS PUSBAN
+      selectWilayah.value = ""; 
     }
   }
 
@@ -395,7 +393,6 @@
 
     context.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-    // Algoritma Kompresi Otomatis Maksimal 700 KB
     let quality = 0.7;
     tempBase64Foto = canvas.toDataURL("image/jpeg", quality);
 
@@ -445,31 +442,58 @@
     document.getElementById("status-foto-fix").style.display = "none";
   }
 
-  // Geolocation Handler
-  function initGPS() {
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(position => {
-        userLocation.latitude = position.coords.latitude;
-        userLocation.longitude = position.coords.longitude;
-        userLocation.maps = `https://maps.google.com/?q=${userLocation.latitude},${userLocation.longitude}`;
-      }, error => {
-        console.warn("GPS tidak aktif atau tidak diizinkan.");
-      });
-    }
+  // FUNGSI UTAMA: Mengambil GPS Terbaru Sebelum Kirim Data
+  function ambilGPSTerbaru() {
+    return new Promise((resolve, reject) => {
+      if (!navigator.geolocation) {
+        reject(new Error("Browser Anda tidak mendukung Geolocation."));
+        return;
+      }
+
+      navigator.geolocation.getCurrentPosition(
+        position => {
+          let lat = position.coords.latitude;
+          let lng = position.coords.longitude;
+          let mapsLink = `https://maps.google.com/?q=${lat},${lng}`;
+          resolve({ latitude: lat, longitude: lng, maps: mapsLink });
+        },
+        error => {
+          reject(new Error("Gagal mendapatkan lokasi GPS. Pastikan GPS HP Anda aktif dan izinkan akses lokasi! (Error: " + error.message + ")"));
+        },
+        { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+      );
+    });
   }
 
-  // Fetch API / Pengiriman Data
-  async function kirimData(payload) {
+  // Fetch API / Pengiriman Data dengan GPS Otomatis
+  async function kirimData(payloadBuilder) {
     let loading = document.getElementById("loading");
     loading.style.display = "block";
 
     try {
+      // Ambil titik GPS segar saat tombol kirim ditekan
+      let gps = await ambilGPSTerbaru();
+      
+      // Gabungkan data dasar dengan koordinat GPS terbaru
+      let payload = Object.assign({}, payloadBuilder, {
+        latitude: gps.latitude,
+        longitude: gps.longitude,
+        maps: gps.maps
+      });
+
       let response = await fetch(SCRIPT_URL, {
         method: "POST",
         body: JSON.stringify(payload)
       });
+      
       let textHasil = await response.text();
-      alert(textHasil);
+      try {
+        let hasilJson = JSON.parse(textHasil);
+        alert(hasilJson.message || textHasil);
+      } catch (e) {
+        alert(textHasil);
+      }
+      
       resetForm();
     } catch (error) {
       alert("Gagal Mengirim Data: " + error.message);
@@ -498,10 +522,7 @@
       nama: nama,
       status: status,
       fotoMasuk: base64Foto,
-      keterangan: ketGabungan,
-      latitude: userLocation.latitude,
-      longitude: userLocation.longitude,
-      maps: userLocation.maps
+      keterangan: ketGabungan
     });
   }
 
@@ -510,6 +531,7 @@
     if (!nama) return alert("Pilih Nama Anda terlebih dahulu!");
     if (!base64Foto) return alert("Silakan konfirmasi foto Anda terlebih dahulu dengan menekan 'Gunakan Foto Ini'!");
 
+    // Absen pulang sekarang otomatis mengambil dan menyertakan koordinat GPS terbaru
     kirimData({
       aksi: "pulang",
       nama: nama,
@@ -523,7 +545,7 @@
     if (!nama) return alert("Pilih Nama Anda terlebih dahulu!");
     if (!keterangan) return alert("Isikan alasan pengajuan izin!");
 
-    kirimData({
+    kirimDataManual({
       aksi: "izin",
       nama: nama,
       keterangan: keterangan
@@ -537,12 +559,31 @@
     if (!judul) return alert("Tuliskan Judul Laporan Kerja Anda!");
     if (!base64Foto) return alert("Silakan konfirmasi foto Anda terlebih dahulu dengan menekan 'Gunakan Foto Ini'!");
 
-    kirimData({
+    kirimDataManual({
       aksi: "laporan",
       nama: nama,
       judul: judul,
       foto: base64Foto
     });
+  }
+
+  // Fungsi khusus untuk menu Izin & Laporan (tanpa wajib GPS)
+  async function kirimDataManual(payload) {
+    let loading = document.getElementById("loading");
+    loading.style.display = "block";
+    try {
+      let response = await fetch(SCRIPT_URL, {
+        method: "POST",
+        body: JSON.stringify(payload)
+      });
+      let textHasil = await response.text();
+      alert(textHasil);
+      resetForm();
+    } catch (error) {
+      alert("Gagal Mengirim Data: " + error.message);
+    } finally {
+      loading.style.display = "none";
+    }
   }
 
   function resetForm() {
