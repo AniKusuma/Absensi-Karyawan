@@ -122,7 +122,7 @@
 
 <script>
   // =========================================================================
-  // ISI DENGAN URL WEB APP DEPLOYMENT GOOGLE APPS SCRIPT ANDA:
+  // URL WEB APP DEPLOYMENT GOOGLE APPS SCRIPT ANDA
   // =========================================================================
   const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwHh4nxokmx_hSyLPMJg9GQYjDXuDFUA5Z6GfGN-vSglje5f2mgeBGEqQFyOsk4O_zv/exec";
 
@@ -181,12 +181,12 @@
         userLocation.longitude = position.coords.longitude;
         userLocation.maps = `https://maps.google.com/?q=${userLocation.latitude},${userLocation.longitude}`;
       }, error => {
-        console.warn("GPS tidak aktif atau diizinkan.");
+        console.warn("GPS tidak aktif atau tidak diizinkan.");
       });
     }
   }
 
-  // Fetch API / Pengiriman Data ke Google Apps Script
+  // Fetch API / Pengiriman Data ke Google Apps Script (Menagani Response JSON)
   async function kirimData(payload) {
     let loading = document.getElementById("loading");
     loading.style.display = "block";
@@ -196,11 +196,18 @@
         method: "POST",
         body: JSON.stringify(payload)
       });
-      let textHasil = await response.text();
-      alert(textHasil);
-      resetForm();
+      
+      // Membaca balasan JSON dari Apps Script
+      let res = await response.json();
+      
+      if (res.status === "success") {
+        alert("BERHASIL: " + res.message);
+        resetForm();
+      } else {
+        alert("GAGAL: " + res.message);
+      }
     } catch (error) {
-      alert("Gagal Mengirim Data: " + error.message);
+      alert("Terjadi Kesalahan Koneksi: " + error.message);
     } finally {
       loading.style.display = "none";
     }
