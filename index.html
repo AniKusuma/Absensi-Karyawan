@@ -251,10 +251,17 @@
       </select>
     </div>
 
+    <!-- Dropdown Shift / Keterangan Dinas -->
     <div class="form-group">
-      <label for="keterangan-masuk">Keterangan/Catatan:</label>
-      <input type="text" id="keterangan-masuk" placeholder="Contoh: Datang tepat waktu">
+      <label for="keterangan-masuk">Shift / Keterangan Dinas:</label>
+      <select id="keterangan-masuk">
+        <option value="">-- Pilih Keterangan Dinas --</option>
+        <option value="Dinas Pagi">Dinas Pagi</option>
+        <option value="Dinas Sore">Dinas Sore</option>
+        <option value="Dinas Malam">Dinas Malam</option>
+      </select>
     </div>
+    
     <button class="btn" onclick="kirimAbsenMasuk()">Kirim Absen Masuk</button>
   </div>
 
@@ -472,10 +479,8 @@
     loading.style.display = "block";
 
     try {
-      // Ambil titik GPS segar saat tombol kirim ditekan
       let gps = await ambilGPSTerbaru();
       
-      // Gabungkan data dasar dengan koordinat GPS terbaru
       let payload = Object.assign({}, payloadBuilder, {
         latitude: gps.latitude,
         longitude: gps.longitude,
@@ -511,11 +516,12 @@
 
     if (!nama) return alert("Pilih Nama Anda terlebih dahulu!");
     if (status === "MERUJUK" && !wilayah) return alert("Silakan pilih Tujuan Tempat Rujukan!");
+    if (!ket) return alert("Silakan pilih Keterangan Dinas (Pagi/Sore/Malam) terlebih dahulu!");
     if (!base64Foto) return alert("Silakan konfirmasi foto Anda terlebih dahulu dengan menekan 'Gunakan Foto Ini'!");
 
     let ketGabungan = ket;
     if (status === "MERUJUK" && wilayah) {
-      ketGabungan = ket ? ket + " (Rujukan: " + wilayah + ")" : "Rujukan: " + wilayah;
+      ketGabungan = ket + " (Rujukan: " + wilayah + ")";
     }
 
     kirimData({
@@ -532,7 +538,6 @@
     if (!nama) return alert("Pilih Nama Anda terlebih dahulu!");
     if (!base64Foto) return alert("Silakan konfirmasi foto Anda terlebih dahulu dengan menekan 'Gunakan Foto Ini'!");
 
-    // Absen pulang sekarang otomatis mengambil dan menyertakan koordinat GPS terbaru
     kirimData({
       aksi: "pulang",
       nama: nama,
@@ -568,7 +573,6 @@
     });
   }
 
-  // Fungsi khusus untuk menu Izin & Laporan (tanpa wajib GPS)
   async function kirimDataManual(payload) {
     let loading = document.getElementById("loading");
     loading.style.display = "block";
