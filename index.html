@@ -297,7 +297,7 @@
   const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwHh4nxokmx_hSyLPMJg9GQYjDXuDFUA5Z6GfGN-vSglje5f2mgeBGEqQFyOsk4O_zv/exec";
 
   let tempBase64Foto = ""; 
-  let base64Foto = "";       
+  let base64Foto = "";        
   let currentStream = null;
   let modeKameraSaatIni = "user";
 
@@ -362,12 +362,12 @@
     let video = document.getElementById("video");
     let preview = document.getElementById("preview-foto");
 
+    // Hanya video yang diberikan efek cermin (mirror) agar preview di layar natural
+    video.classList.remove("mirror");
+    preview.classList.remove("mirror");
+
     if (mode === "user") {
       video.classList.add("mirror");
-      preview.classList.add("mirror");
-    } else {
-      video.classList.remove("mirror");
-      preview.classList.remove("mirror");
     }
 
     let constraints = {
@@ -391,15 +391,20 @@
     let preview = document.getElementById("preview-foto");
     let context = canvas.getContext("2d");
 
-    canvas.width = 480;
-    canvas.height = 640;
+    // Mengambil resolusi proporsional dari video asli
+    canvas.width = video.videoWidth || 480;
+    canvas.height = video.videoHeight || 640;
 
+    context.save();
+
+    // Jika kamera depan, lakukan flip horizontal agar hasil foto SAMA PERSIS dengan preview layar
     if (modeKameraSaatIni === "user") {
       context.translate(canvas.width, 0);
       context.scale(-1, 1);
     }
 
     context.drawImage(video, 0, 0, canvas.width, canvas.height);
+    context.restore();
 
     let quality = 0.7;
     tempBase64Foto = canvas.toDataURL("image/jpeg", quality);
