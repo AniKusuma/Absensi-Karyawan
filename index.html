@@ -232,15 +232,17 @@
       <select id="status" onchange="cekStatusRujukan()">
         <option value="PUSKESMAS">PUSKESMAS</option>
         <option value="DINAS PUSBAN">DINAS PUSBAN</option>
+        <option value="DINAS POLI">DINAS POLI</option>
+        <option value="DINAS LUAR">DINAS LUAR</option>
         <option value="MERUJUK">MERUJUK</option>
       </select>
     </div>
     
-    <!-- Container Lokasi Rujukan (Otomatis tersembunyi jika bukan MERUJUK) -->
+    <!-- Container Pilihan Kota / Wilayah (Digunakan bersama oleh MERUJUK dan DINAS LUAR) -->
     <div class="form-group" id="group-rujukan" style="display: none;">
-      <label for="wilayahAbsen">Tujuan Tempat Rujukan:</label>
+      <label id="label-wilayah" for="wilayahAbsen">Tujuan Tempat Rujukan / Dinas Luar:</label>
       <select id="wilayahAbsen">
-        <option value="">-- Pilih Tempat Rujukan --</option>
+        <option value="">-- Pilih Kota / Wilayah Tujuan --</option>
         <option value="Muara Bengkal">Muara Bengkal</option>
         <option value="Samarinda">Samarinda</option>
         <option value="Tenggarong">Tenggarong</option>
@@ -306,14 +308,19 @@
     cekStatusRujukan(); // Menyesuaikan tampilan awal saat halaman dimuat
   };
 
-  // Fungsi Otomatisasi Dropdown Rujukan
+  // Fungsi Otomatisasi Dropdown Rujukan / Dinas Luar
   function cekStatusRujukan() {
     let status = document.getElementById("status").value;
     let groupRujukan = document.getElementById("group-rujukan");
+    let labelWilayah = document.getElementById("label-wilayah");
     let selectWilayah = document.getElementById("wilayahAbsen");
 
     if (status === "MERUJUK") {
       groupRujukan.style.display = "block";
+      labelWilayah.innerText = "Tujuan Tempat Rujukan:";
+    } else if (status === "DINAS LUAR") {
+      groupRujukan.style.display = "block";
+      labelWilayah.innerText = "Tujuan Kota Dinas Luar:";
     } else {
       groupRujukan.style.display = "none";
       selectWilayah.value = ""; 
@@ -520,13 +527,15 @@
     let ket = document.getElementById("keterangan-masuk").value;
 
     if (!nama) return alert("Pilih Nama Anda terlebih dahulu!");
-    if (status === "MERUJUK" && !wilayah) return alert("Silakan pilih Tujuan Tempat Rujukan!");
-    if (!ket) return alert("Silakan pilih Keterangan Dinas (Pagi/Sore/Malam) terlebih dahulu!");
+    if ((status === "MERUJUK" || status === "DINAS LUAR") && !wilayah) return alert("Silakan pilih Kota / Wilayah Tujuan!");
+    if (!ket) return alert("Silakan pilih Keterangan Dinas (Pagi/Sore/Malam/Admin) terlebih dahulu!");
     if (!base64Foto) return alert("Silakan konfirmasi foto Anda terlebih dahulu dengan menekan 'Gunakan Foto Ini'!");
 
     let ketGabungan = ket;
     if (status === "MERUJUK" && wilayah) {
       ketGabungan = ket + " (Rujukan: " + wilayah + ")";
+    } else if (status === "DINAS LUAR" && wilayah) {
+      ketGabungan = ket + " (Dinas Luar: " + wilayah + ")";
     }
 
     kirimData({
