@@ -333,15 +333,19 @@
     let nama = document.getElementById("nama").value;
     let infoBox = document.getElementById("info-sudah-absen");
     let btnMasuk = document.getElementById("btn-kirim-masuk");
+    let btnPulang = document.getElementById("btn-kirim-pulang");
 
     if (!nama) {
       infoBox.style.display = "none";
       btnMasuk.disabled = false;
+      btnPulang.disabled = false;
+      btnPulang.innerText = "Kirim Absen Pulang";
       return;
     }
 
-    let kunciLokal = "absen_masuk_" + nama + "_" + getFormattedDate();
-    if (localStorage.getItem(kunciLokal) === "sukses") {
+    // Cek Status Masuk
+    let kunciMasuk = "absen_masuk_" + nama + "_" + getFormattedDate();
+    if (localStorage.getItem(kunciMasuk) === "sukses") {
       infoBox.style.display = "block";
       btnMasuk.disabled = true;
       btnMasuk.innerText = "Sudah Absen Hari Ini";
@@ -349,6 +353,16 @@
       infoBox.style.display = "none";
       btnMasuk.disabled = false;
       btnMasuk.innerText = "Kirim Absen Masuk";
+    }
+
+    // Cek Status Pulang
+    let kunciPulang = "absen_pulang_" + nama + "_" + getFormattedDate();
+    if (localStorage.getItem(kunciPulang) === "sukses") {
+      btnPulang.disabled = true;
+      btnPulang.innerText = "Sudah Absen Pulang Hari Ini";
+    } else {
+      btnPulang.disabled = false;
+      btnPulang.innerText = "Kirim Absen Pulang";
     }
   }
 
@@ -556,6 +570,13 @@
         if (payload.aksi === "masuk" && hasilJson.status === "success") {
           let kunciLokal = "absen_masuk_" + payload.nama + "_" + getFormattedDate();
           localStorage.setItem(kunciLokal, "sukses");
+          cekStatusAbsenLokal();
+        }
+
+        // Jika Absen Pulang Berhasil, kunci secara lokal di perangkat
+        if (payload.aksi === "pulang" && hasilJson.status === "success") {
+          let kunciLokalPulang = "absen_pulang_" + payload.nama + "_" + getFormattedDate();
+          localStorage.setItem(kunciLokalPulang, "sukses");
           cekStatusAbsenLokal();
         }
       } catch (e) {
