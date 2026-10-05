@@ -141,11 +141,12 @@
       box-shadow: 0 2px 6px rgba(15, 118, 110, 0.2);
     }
     .btn:hover { opacity: 0.9; }
+    .btn:disabled { background: #94a3b8; cursor: not-allowed; opacity: 0.7; }
     .btn-camera { background: #475569; margin-top: 10px; font-size: 15px; }
     .btn-retry { background: #d97706; color: white; }
     .btn-confirm { background: #16a34a; color: white; }
     
-    /* Status Foto Kunci */
+    /* Status Foto Kunci & Pemberitahuan Status Absen */
     .status-foto {
       margin-top: 8px;
       font-size: 13px;
@@ -153,9 +154,20 @@
       color: #16a34a;
       display: none;
     }
+    .info-absen {
+      background: #e6fffa;
+      color: #0f766e;
+      padding: 10px;
+      border-radius: 6px;
+      font-size: 13px;
+      font-weight: 600;
+      text-align: center;
+      margin-bottom: 15px;
+      display: none;
+    }
     
     /* Loading Indicator */
-    #loading { 
+    .loading-box { 
       display: none; 
       text-align: center; 
       font-weight: bold; 
@@ -187,7 +199,7 @@
   <!-- 2. Input Nama Pegawai -->
   <div class="form-group">
     <label for="nama">Nama Pegawai:</label>
-    <select id="nama">
+    <select id="nama" onchange="cekStatusAbsenLokal()">
       <option value="">-- Pilih Nama Karyawan --</option>
       <option value="Ayu Setnia Sulistio Putri">Ayu Setnia Sulistio Putri</option>
       <option value="Badriyah Ani Kusuma Putri">Badriyah Ani Kusuma Putri</option>
@@ -227,6 +239,8 @@
 
   <!-- TAB ABSEN MASUK -->
   <div id="tab-masuk" class="tab-content">
+    <div id="info-sudah-absen" class="info-absen">✅ Anda sudah melakukan Absen Masuk hari ini.</div>
+    
     <div class="form-group">
       <label for="status">Status Kehadiran:</label>
       <select id="status" onchange="cekStatusRujukan()">
@@ -238,7 +252,7 @@
       </select>
     </div>
     
-    <!-- Container Pilihan Kota / Wilayah (Digunakan bersama oleh MERUJUK dan DINAS LUAR) -->
+    <!-- Container Pilihan Kota / Wilayah -->
     <div class="form-group" id="group-rujukan" style="display: none;">
       <label id="label-wilayah" for="wilayahAbsen">Tujuan Tempat Rujukan / Dinas Luar:</label>
       <select id="wilayahAbsen">
@@ -257,7 +271,7 @@
       <label for="keterangan-masuk">Shift / Keterangan Dinas:</label>
       <select id="keterangan-masuk">
         <option value="">-- Pilih Keterangan Dinas --</option>
-        <option value="Dinas Pagi">Dinas Poli</option>
+        <option value="Dinas Poli">Dinas Poli</option>
         <option value="Dinas Pagi">Dinas Pagi</option>
         <option value="Dinas Sore">Dinas Sore</option>
         <option value="Dinas Malam">Dinas Malam</option>
@@ -265,13 +279,13 @@
       </select>
     </div>
     
-    <button class="btn" onclick="kirimAbsenMasuk()">Kirim Absen Masuk</button>
+    <button class="btn" id="btn-kirim-masuk" onclick="kirimAbsenMasuk()">Kirim Absen Masuk</button>
   </div>
 
   <!-- TAB ABSEN PULANG -->
   <div id="tab-pulang" class="tab-content" style="display:none;">
     <p style="text-align:center; color:#475569; font-size:14px; margin-bottom:15px;">Ambil foto untuk verifikasi presensi pulang harian.</p>
-    <button class="btn" style="background:#dc2626;" onclick="kirimAbsenPulang()">Kirim Absen Pulang</button>
+    <button class="btn" id="btn-kirim-pulang" style="background:#dc2626;" onclick="kirimAbsenPulang()">Kirim Absen Pulang</button>
   </div>
 
   <!-- TAB IZIN -->
@@ -280,7 +294,7 @@
       <label for="keterangan-izin">Alasan Izin / Sakit:</label>
       <textarea id="keterangan-izin" placeholder="Tuliskan alasan pengajuan izin secara detail..."></textarea>
     </div>
-    <button class="btn" style="background:#d97706; color:white;" onclick="kirimIzin()">Kirim Pengajuan Izin</button>
+    <button class="btn" id="btn-kirim-izin" style="background:#d97706; color:white;" onclick="kirimIzin()">Kirim Pengajuan Izin</button>
   </div>
 
   <!-- TAB LAPORAN KERJA -->
@@ -289,11 +303,11 @@
       <label for="judul-laporan">Judul Laporan Kerja:</label>
       <input type="text" id="judul-laporan" placeholder="Masukkan judul kegiatan/laporan...">
     </div>
-    <button class="btn" style="background:#16a34a;" onclick="kirimLaporanKerja()">Kirim Laporan Kerja</button>
+    <button class="btn" id="btn-kirim-laporan" style="background:#16a34a;" onclick="kirimLaporanKerja()">Kirim Laporan Kerja</button>
   </div>
 
   <!-- Loading Status -->
-  <div id="loading">Memproses data, mohon tunggu...</div>
+  <div id="loading" class="loading-box">Memproses data, mohon tunggu...</div>
 </div>
 
 <script>
@@ -306,8 +320,37 @@
 
   window.onload = function() {
     initKamera("user");
-    cekStatusRujukan(); // Menyesuaikan tampilan awal saat halaman dimuat
+    cekStatusRujukan();
   };
+
+  // Cek localStorage apakah nama terpilih sudah absen hari ini
+  function getFormattedDate() {
+    let d = new Date();
+    return d.getDate() + "-" + (d.getMonth() + 1) + "-" + d.getFullYear();
+  }
+
+  function cekStatusAbsenLokal() {
+    let nama = document.getElementById("nama").value;
+    let infoBox = document.getElementById("info-sudah-absen");
+    let btnMasuk = document.getElementById("btn-kirim-masuk");
+
+    if (!nama) {
+      infoBox.style.display = "none";
+      btnMasuk.disabled = false;
+      return;
+    }
+
+    let kunciLokal = "absen_masuk_" + nama + "_" + getFormattedDate();
+    if (localStorage.getItem(kunciLokal) === "sukses") {
+      infoBox.style.display = "block";
+      btnMasuk.disabled = true;
+      btnMasuk.innerText = "Sudah Absen Hari Ini";
+    } else {
+      infoBox.style.display = "none";
+      btnMasuk.disabled = false;
+      btnMasuk.innerText = "Kirim Absen Masuk";
+    }
+  }
 
   // Fungsi Otomatisasi Dropdown Rujukan / Dinas Luar
   function cekStatusRujukan() {
@@ -370,7 +413,6 @@
     let video = document.getElementById("video");
     let preview = document.getElementById("preview-foto");
 
-    // Hanya video yang diberikan efek cermin (mirror) agar preview di layar natural
     video.classList.remove("mirror");
     preview.classList.remove("mirror");
 
@@ -399,13 +441,10 @@
     let preview = document.getElementById("preview-foto");
     let context = canvas.getContext("2d");
 
-    // Mengambil resolusi proporsional dari video asli
     canvas.width = video.videoWidth || 480;
     canvas.height = video.videoHeight || 640;
 
     context.save();
-
-    // Jika kamera depan, lakukan flip horizontal agar hasil foto SAMA PERSIS dengan preview layar
     if (modeKameraSaatIni === "user") {
       context.translate(canvas.width, 0);
       context.scale(-1, 1);
@@ -463,7 +502,7 @@
     document.getElementById("status-foto-fix").style.display = "none";
   }
 
-  // FUNGSI UTAMA: Mengambil GPS Terbaru Sebelum Kirim Data
+  // Ambil GPS Terbaru
   function ambilGPSTerbaru() {
     return new Promise((resolve, reject) => {
       if (!navigator.geolocation) {
@@ -486,10 +525,13 @@
     });
   }
 
-  // Fetch API / Pengiriman Data dengan GPS Otomatis
-  async function kirimData(payloadBuilder) {
+  // Kirim Data Universal (Dilengkapi proteksi tombol disable agar tidak double-click)
+  async function kirimData(payloadBuilder, btnId) {
     let loading = document.getElementById("loading");
+    let btnTarget = btnId ? document.getElementById(btnId) : null;
+    
     loading.style.display = "block";
+    if (btnTarget) btnTarget.disabled = true;
 
     try {
       let gps = await ambilGPSTerbaru();
@@ -509,6 +551,13 @@
       try {
         let hasilJson = JSON.parse(textHasil);
         alert(hasilJson.message || textHasil);
+
+        // Jika Absen Masuk Berhasil, kunci secara lokal di perangkat
+        if (payload.aksi === "masuk" && hasilJson.status === "success") {
+          let kunciLokal = "absen_masuk_" + payload.nama + "_" + getFormattedDate();
+          localStorage.setItem(kunciLokal, "sukses");
+          cekStatusAbsenLokal();
+        }
       } catch (e) {
         alert(textHasil);
       }
@@ -516,6 +565,7 @@
       resetForm();
     } catch (error) {
       alert("Gagal Mengirim Data: " + error.message);
+      if (btnTarget) btnTarget.disabled = false;
     } finally {
       loading.style.display = "none";
     }
@@ -545,7 +595,7 @@
       status: status,
       fotoMasuk: base64Foto,
       keterangan: ketGabungan
-    });
+    }, "btn-kirim-masuk");
   }
 
   function kirimAbsenPulang() {
@@ -557,7 +607,7 @@
       aksi: "pulang",
       nama: nama,
       fotoPulang: base64Foto
-    });
+    }, "btn-kirim-pulang");
   }
 
   function kirimIzin() {
@@ -570,7 +620,7 @@
       aksi: "izin",
       nama: nama,
       keterangan: keterangan
-    });
+    }, "btn-kirim-izin");
   }
 
   function kirimLaporanKerja() {
@@ -585,12 +635,16 @@
       nama: nama,
       judul: judul,
       foto: base64Foto
-    });
+    }, "btn-kirim-laporan");
   }
 
-  async function kirimDataManual(payload) {
+  async function kirimDataManual(payload, btnId) {
     let loading = document.getElementById("loading");
+    let btnTarget = btnId ? document.getElementById(btnId) : null;
+
     loading.style.display = "block";
+    if (btnTarget) btnTarget.disabled = true;
+
     try {
       let response = await fetch(SCRIPT_URL, {
         method: "POST",
@@ -601,8 +655,10 @@
       resetForm();
     } catch (error) {
       alert("Gagal Mengirim Data: " + error.message);
+      if (btnTarget) btnTarget.disabled = false;
     } finally {
       loading.style.display = "none";
+      if (btnTarget) btnTarget.disabled = false;
     }
   }
 
