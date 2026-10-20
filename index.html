@@ -288,8 +288,12 @@
     <button class="btn" id="btn-kirim-pulang" style="background:#dc2626;" onclick="kirimAbsenPulang()">Kirim Absen Pulang</button>
   </div>
 
-  <!-- TAB IZIN -->
+  <!-- TAB IZIN (Sudah ditambahkan Input Jumlah Hari) -->
   <div id="tab-izin" class="tab-content" style="display:none;">
+    <div class="form-group">
+      <label for="jumlah-hari-izin">Jumlah Hari Izin:</label>
+      <input type="number" id="jumlah-hari-izin" min="1" max="30" value="1">
+    </div>
     <div class="form-group">
       <label for="keterangan-izin">Alasan Izin / Sakit:</label>
       <textarea id="keterangan-izin" placeholder="Tuliskan alasan pengajuan izin secara detail..."></textarea>
@@ -589,6 +593,7 @@
       if (btnTarget) btnTarget.disabled = false;
     } finally {
       loading.style.display = "none";
+      if (btnTarget) btnTarget.disabled = false;
     }
   }
 
@@ -633,13 +638,17 @@
 
   function kirimIzin() {
     let nama = document.getElementById("nama").value;
+    let jumlahHari = document.getElementById("jumlah-hari-izin").value;
     let keterangan = document.getElementById("keterangan-izin").value;
+    
     if (!nama) return alert("Pilih Nama Anda terlebih dahulu!");
+    if (!jumlahHari || jumlahHari < 1) return alert("Masukkan jumlah hari izin dengan benar!");
     if (!keterangan) return alert("Isikan alasan pengajuan izin!");
 
     kirimDataManual({
       aksi: "izin",
       nama: nama,
+      jumlahHari: jumlahHari,
       keterangan: keterangan
     }, "btn-kirim-izin");
   }
@@ -672,11 +681,15 @@
         body: JSON.stringify(payload)
       });
       let textHasil = await response.text();
-      alert(textHasil);
+      try {
+        let hasilJson = JSON.parse(textHasil);
+        alert(hasilJson.message || textHasil);
+      } catch (e) {
+        alert(textHasil);
+      }
       resetForm();
     } catch (error) {
       alert("Gagal Mengirim Data: " + error.message);
-      if (btnTarget) btnTarget.disabled = false;
     } finally {
       loading.style.display = "none";
       if (btnTarget) btnTarget.disabled = false;
@@ -686,6 +699,7 @@
   function resetForm() {
     resetTampilanFoto();
     document.getElementById("keterangan-masuk").value = "";
+    document.getElementById("jumlah-hari-izin").value = "1";
     document.getElementById("keterangan-izin").value = "";
     document.getElementById("judul-laporan").value = "";
     document.getElementById("wilayahAbsen").value = "";
